@@ -79,8 +79,8 @@ public class BookingDAO extends BaseDAO<Booking, Integer> {
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, booking.getAssetId());
             stmt.setInt(2, booking.getRenterId());
-            stmt.setString(3, booking.getStartTime().toString());
-            stmt.setString(4, booking.getEndTime().toString());
+            stmt.setString(3, booking.getStartTime().format(DT_FMT));
+            stmt.setString(4, booking.getEndTime().format(DT_FMT));
             stmt.setString(5, booking.getStatus().getDbValue());
             stmt.setDouble(6, booking.getTotalCost());
             boolean success = stmt.executeUpdate() > 0;
