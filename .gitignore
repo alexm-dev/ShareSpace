@@ -8,6 +8,9 @@ out/
 *.ear
 dependency-reduced-pom.xml
 
+# --- Log Output ---
+logs/
+
 # --- Submission artifact (locally generated) ---
 /submission
 
