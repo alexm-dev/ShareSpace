@@ -1,9 +1,11 @@
 package app.service;
 
 import app.dao.AssetDAO;
+import app.dao.BookingDAO;
 import app.dao.LocationDAO;
 import app.model.Asset;
 import app.model.Location;
+import app.model.enums.BookingStatus;
 
 import java.util.List;
 
@@ -14,10 +16,12 @@ import java.util.List;
 public class AssetService {
     private final AssetDAO assetDAO;
     private final LocationDAO locationDAO;
+    private final BookingDAO bookingDAO;
 
     public AssetService() {
         this.assetDAO = new AssetDAO();
         this.locationDAO = new LocationDAO();
+        this.bookingDAO = new BookingDAO();
     }
 
     /**
@@ -119,5 +123,37 @@ public class AssetService {
      */
     public List<Asset> findBySubcategory(int subcategoryId) {
         return assetDAO.findBySubCategoryId(subcategoryId);
+    }
+
+    /**
+     * Returns the location of an asset, shaped for the given viewer.
+     *
+     * The full address is only revealed to the asset owner
+     * or to a renter who has a confirmed or completed booking on it. Anyone
+     * else gets an approximate location (city, postal code, district, country)
+     * with the street address removed.
+     *
+     * @param assetId the asset whose location is requested
+     * @param viewerId the user viewing the asset
+     * @return the location for this viewer, or null if the asset or its location is missing
+     */
+    public Location getLocationFor(int assetId, int viewerId) {
+        Asset asset = assetDAO.findById(assetId);
+        if (asset == null) {
+            return null;
+        }
+
+        Location location = locationDAO.findById(asset.getAssetLocationId());
+        if (location == null) {
+            return null;
+        }
+
+        boolean isOwner = asset.getOwnerId() == viewerId;
+        boolean hasBooking = bookingDAO.findByRenterId(viewerId).stream()
+                .anyMatch(b -> b.getAssetId() == assetId
+                        && (b.getStatus() == BookingStatus.CONFIRMED
+                                || b.getStatus() == BookingStatus.COMPLETE));
+
+        return (isOwner || hasBooking) ? location : location.withoutStreet();
     }
 }

@@ -44,4 +44,14 @@ public class Location {
     public void setDistrict(String district) { this.district = district; }
     public void setStreetAddress(String streetAddress) { this.streetAddress = streetAddress; }
     public void setCountry(String country) { this.country = country; }
+
+    /**
+     * Returns a copy of this location without the street address, for showing
+     * an approximate location before a booking is confirmed.
+     *
+     * @return a copy with the street address removed
+     */
+    public Location withoutStreet() {
+        return new Location(id, city, postalCode, district, null, country);
+    }
 }
