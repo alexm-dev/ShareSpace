@@ -5,10 +5,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Application logger.
  *
- * Thin facade over SLF4J so call sites stay simple (Logger.info(...), etc.).
+ * SLF4J logger util that wraps logback framework.
  * Output destinations, levels and the per-run log file are configured in
  * src/main/resources/logback.xml.
  */
+//TODO: Spread the logger calls accross sharespace codebase in ONLY services and controllers and not in models.
 public class Logger {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger("ShareSpace");
