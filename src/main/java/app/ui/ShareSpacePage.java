@@ -18,7 +18,7 @@ public class ShareSpacePage {
 
         VBox who = new VBox(12,
                 Ui.light("WHO WE ARE", 11),
-                Ui.boldCentered("Share the space, smart and light — get your gear just when it's right.", 28),
+                Ui.boldCentered("Share the space, smart and light - get your gear just when it's right.", 28),
                 Ui.button("ABOUT US", 13, "-fx-background-color: #ffd000;"));
         who.setAlignment(Pos.CENTER);
         who.setMaxWidth(Double.MAX_VALUE);

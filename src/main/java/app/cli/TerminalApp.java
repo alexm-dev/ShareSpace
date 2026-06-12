@@ -646,7 +646,7 @@ public class TerminalApp {
         }
 
         if (!booking.getStatus().equals("completed")) {
-            System.out.println("booking is not completed yet — status: " + booking.getStatus());
+            System.out.println("booking is not completed yet - status: " + booking.getStatus());
             return;
         }
 
@@ -658,7 +658,7 @@ public class TerminalApp {
 
         Integer ratingValue = promptInt("Rating (1-5): ");
         if (ratingValue == null || ratingValue < 1 || ratingValue > 5) {
-            System.out.println("invalid rating — must be between 1 and 5");
+            System.out.println("invalid rating - must be between 1 and 5");
             return;
         }
 
