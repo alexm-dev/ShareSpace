@@ -1,8 +1,9 @@
-package com.sharespace;
+package app.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -24,13 +25,25 @@ public class LoginPage {
         PasswordField pw = new PasswordField();
         pw.setPromptText("Password");
 
+        Label error = Ui.light("", 12);
+        error.setStyle("-fx-text-fill: #e53935;");
+
         Button loginBtn = Ui.button("Log in", 13,
                 "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
         loginBtn.setMaxWidth(Double.MAX_VALUE);
+        loginBtn.setOnAction(e -> {
+            if (ShareS.session.login(email.getText().trim(), pw.getText().toCharArray()) != null) {
+                ShareS.showCatalogPage();
+            } else {
+                error.setText("Invalid email or password.");
+                pw.clear();
+            }
+        });
 
         VBox form = new VBox(10,
                 Ui.light("Email address", 11), email,
                 Ui.light("Password", 11), pw,
+                error,
                 loginBtn);
         form.setMaxWidth(360);
 

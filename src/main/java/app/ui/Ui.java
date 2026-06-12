@@ -1,4 +1,4 @@
-package com.sharespace;
+package app.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

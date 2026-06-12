@@ -1,13 +1,13 @@
 package app.service;
 
-import app.model.Booking;
+import app.dao.AssetDAO;
 import app.dao.BookingDAO;
 import app.model.Asset;
-import app.dao.AssetDAO;
+import app.model.Booking;
+import app.model.enums.BookingStatus;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class BookingService {
@@ -17,7 +17,7 @@ public class BookingService {
 
     private boolean discountEnabled = false;
     private int discountAfterDays = 3;
-    private double discountPercentange = 20.0;
+    private double discountPercentage = 20.0;
 
     public BookingService() {
         this.bookingDAO = new BookingDAO();
@@ -25,42 +25,65 @@ public class BookingService {
     }
 
     public double calculateCost(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
-        double dailyRate = assetDAO.findById(assetId).getDailyRate();
+        Asset asset = assetDAO.findById(assetId);
+        if (asset == null) return 0.0;
 
         double days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
-
-        double billableDays = Math.ceil(days * 2) / 2.0;
+        double billableDays = Math.max(1, Math.ceil(days * 2) / 2.0);
 
         if (!discountEnabled || billableDays <= discountAfterDays) {
-            return billableDays * dailyRate;
+            return billableDays * asset.getDailyRate();
         }
 
-        double discountedRate = dailyRate * (1 - discountPercentange / 100.0);
-
-        return (discountAfterDays * dailyRate) + ((billableDays - discountAfterDays) * discountedRate);
+        double discountedRate = asset.getDailyRate() * (1 - discountPercentage / 100.0);
+        return (discountAfterDays * asset.getDailyRate()) + ((billableDays - discountAfterDays) * discountedRate);
     }
 
     public Booking createBooking(int assetId, int renterId, LocalDateTime startTime, LocalDateTime endTime) {
         double totalCost = calculateCost(assetId, startTime, endTime);
-        var status = bookingDAO.findByStatus(status)
-        Booking booking = new Booking(assetId, renterId, startTime, endTime, status, totalCost);
+        Booking booking = new Booking(assetId, renterId, startTime, endTime, BookingStatus.PENDING, totalCost);
+        return bookingDAO.create(booking) ? booking : null;
     }
 
-    public void ennableDiscount(boolean enabled) {
-        this.discountEnabled = enabled;
+    public boolean confirmBooking(int bookingId) {
+        Booking booking = bookingDAO.findById(bookingId);
+        if (booking == null) return false;
+        booking.setStatus(BookingStatus.CONFIRMED);
+        return bookingDAO.update(booking);
     }
 
-    public void configureDiscount(int afterDays, double percentage) {
-        this.discountAfterDays = afterDays;
-        this.discountPercentange = percentage;
+    public boolean cancelBooking(int bookingId) {
+        Booking booking = bookingDAO.findById(bookingId);
+        if (booking == null) return false;
+        booking.setStatus(BookingStatus.CANCELLED);
+        return bookingDAO.update(booking);
     }
 
-    public Asset getBookedAsset(int assetId) {
-        return assetDAO.findById(assetId);
+    public boolean completeBooking(int bookingId) {
+        Booking booking = bookingDAO.findById(bookingId);
+        if (booking == null) return false;
+        booking.setStatus(BookingStatus.COMPLETE);
+        return bookingDAO.update(booking);
+    }
+
+    public List<Booking> findByRenter(int renterId) {
+        return bookingDAO.findByRenterId(renterId);
+    }
+
+    public List<Booking> findByAsset(int assetId) {
+        return bookingDAO.findByAssetId(assetId);
     }
 
     public List<Asset> getBookingsByOwner(int ownerId) {
         return assetDAO.findByOwnerId(ownerId);
     }
 
+    public void enableDiscount(boolean enabled) {
+        this.discountEnabled = enabled;
+    }
+
+    public void configureDiscount(int afterDays, double percentage) {
+        this.discountAfterDays = afterDays;
+        this.discountPercentage = percentage;
+    }
 }

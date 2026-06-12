@@ -1,5 +1,12 @@
-package com.sharespace;
+package app.ui;
 
+import app.database.Database;
+import app.service.AssetService;
+import app.service.BookingService;
+import app.service.CatalogService;
+import app.service.RatingService;
+import app.service.SessionService;
+import app.service.UserService;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
@@ -9,6 +16,25 @@ import javafx.stage.Stage;
 public class ShareS extends Application {
 
     public static Stage primaryStage;
+
+    public static SessionService session;
+    public static UserService userService;
+    public static AssetService assetService;
+    public static CatalogService catalogService;
+    public static BookingService bookingService;
+    public static RatingService ratingService;
+
+    @Override
+    public void init() throws Exception {
+        Database.initialize();
+        session = new SessionService();
+        session.restoreSession();
+        userService = new UserService();
+        assetService = new AssetService();
+        catalogService = new CatalogService();
+        bookingService = new BookingService();
+        ratingService = new RatingService();
+    }
 
     @Override
     public void start(Stage stage) {
@@ -39,7 +65,4 @@ public class ShareS extends Application {
         primaryStage.show();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 }

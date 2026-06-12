@@ -123,6 +123,27 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
         return findByIntColumn("rated_user_id", ratedUserId, "Failed to find ratings by rated user id");
     }
 
+    public List<Rating> findByReviewerId(int reviewerId) {
+        return findByIntColumn("reviewer_id", reviewerId, "Failed to find ratings by reviewer id");
+    }
+
+    public List<Rating> findByAssetId(int assetId) {
+        List<Rating> list = new ArrayList<>();
+        String colList = "r." + String.join(", r.", COLUMNS);
+        String sql = "SELECT " + colList
+                   + " FROM ratings r JOIN bookings b ON r.booking_id = b.id"
+                   + " WHERE b.asset_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, assetId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find ratings by asset id", e);
+        }
+        return list;
+    }
+
     private List<Rating> findByIntColumn(String column, int value, String errorMessage) {
         List<Rating> list = new ArrayList<>();
         String cols = String.join(", ", COLUMNS);

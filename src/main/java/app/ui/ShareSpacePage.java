@@ -1,4 +1,4 @@
-package com.sharespace;
+package app.ui;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
