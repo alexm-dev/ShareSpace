@@ -22,6 +22,7 @@ public class TerminalApp {
     private final UserService userService = new UserService();
     private final AssetService assetService = new AssetService();
     private final CatalogService catalogService = new CatalogService();
+    private final RatingService ratingService = new RatingService();
     private final SessionService session;
     private final AdminMenu adminMenu;
 
@@ -86,6 +87,7 @@ public class TerminalApp {
         System.out.println("6. Delete account");
         if (isLender) System.out.println("7. My listings");
         if (isRenter) System.out.println("8. My bookings (not yet)");
+        System.out.println("r. Ratings");
         System.out.println("9. Toggle debug logs (" + (Logger.isDebug() ? "ON" : "OFF") + ")");
         System.out.println("a. Admin / Debug");
         System.out.println("b. Browse assets");
@@ -107,6 +109,7 @@ public class TerminalApp {
                 if (isRenter) System.out.println("BookingService not implemented yet.");
                 else System.out.println("unknown option");
             }
+            case "r" -> ratingsMenu();
             case "9" -> toggleDebug();
             case "a" -> adminMenu.run();
             case "b" -> browseAssets();
@@ -282,7 +285,7 @@ public class TerminalApp {
         System.out.println("[categories]");
         for (Category c : categories) {
             System.out.println(c.getId() + ". " + c.getName()
-                + (c.getDescription() != null ? " - " + c.getDescription() : ""));
+                    + (c.getDescription() != null ? " - " + c.getDescription() : ""));
         }
         Integer categoryId = promptInt("Pick category id (0 = back): ");
         if (categoryId == null || categoryId == 0) return;
@@ -319,10 +322,10 @@ public class TerminalApp {
         System.out.println("[listings]");
         for (Asset a : assets) {
             System.out.println("id=" + a.getId()
-                + " | " + a.getModel()
-                + " | " + a.getCondition()
-                + " | " + a.getDailyRate() + "/day"
-                + " | owner=" + a.getOwnerId());
+                    + " | " + a.getModel()
+                    + " | " + a.getCondition()
+                    + " | " + a.getDailyRate() + "/day"
+                    + " | owner=" + a.getOwnerId());
             printAssetDetails(a);
         }
     }
@@ -382,10 +385,10 @@ public class TerminalApp {
         }
         for (Asset a : mine) {
             System.out.println("id=" + a.getId()
-                + " | " + a.getModel()
-                + " | " + a.getCondition()
-                + " | " + a.getDailyRate() + "/day"
-                + " | subCat=" + a.getSubCategoryId());
+                    + " | " + a.getModel()
+                    + " | " + a.getCondition()
+                    + " | " + a.getDailyRate() + "/day"
+                    + " | subCat=" + a.getSubCategoryId());
             printAssetDetails(a);
         }
     }
@@ -399,7 +402,7 @@ public class TerminalApp {
         System.out.println("[manage roles]");
         System.out.print("current: ");
         System.out.println(roles.isEmpty() ? "none"
-            : roles.stream().map(Role::getName).collect(Collectors.joining(", ")));
+                : roles.stream().map(Role::getName).collect(Collectors.joining(", ")));
 
         System.out.println("available:");
         for (Role r : allRoles) {
@@ -462,7 +465,7 @@ public class TerminalApp {
         String condition = scanner.nextLine().trim();
 
         Double dailyRate = promptDouble("Daily rate: ");
-        if (dailyRate == null) { 
+        if (dailyRate == null) {
             return;
         }
 
@@ -598,13 +601,131 @@ public class TerminalApp {
             System.out.println("cancelled");
             return;
         }
- 
+
         int me = session.getActiveUser().getId();
         if (assetService.deleteAsset(id, me)) {
             System.out.println("deleted");
             Logger.info("asset deleted: id=" + id);
         } else {
             System.out.println("not found or not your listing");
+        }
+    }
+
+    // ratings menu and methods
+    private void ratingsMenu() {
+        while (true) {
+            System.out.println();
+            System.out.println("[ratings menu]");
+            System.out.println("1. Submit a rating");
+            System.out.println("2. View my received ratings");
+            System.out.println("3. View average rating for a user");
+            System.out.println("4. View average rating for an asset");
+            System.out.println("0. Back");
+
+            switch (prompt()) {
+                case "1" -> submitRating();
+                case "2" -> viewMyRatings();
+                case "3" -> viewAverageForUser();
+                case "4" -> viewAverageForAsset();
+                case "0" -> { return; }
+                default -> System.out.println("unknown option");
+            }
+        }
+    }
+
+    private void submitRating() {
+        Integer bookingId = promptInt("Booking id to rate: ");
+        if (bookingId == null) return;
+
+        app.dao.BookingDAO bookingDAO = new app.dao.BookingDAO();
+        Booking booking = bookingDAO.findById(bookingId);
+
+        if (booking == null) {
+            System.out.println("booking not found");
+            return;
+        }
+
+        if (!booking.getStatus().equals("completed")) {
+            System.out.println("booking is not completed yet — status: " + booking.getStatus());
+            return;
+        }
+
+        int myId = session.getActiveUser().getId();
+        if (booking.getRenterId() != myId) {
+            System.out.println("this is not your booking");
+            return;
+        }
+
+        Integer ratingValue = promptInt("Rating (1-5): ");
+        if (ratingValue == null || ratingValue < 1 || ratingValue > 5) {
+            System.out.println("invalid rating — must be between 1 and 5");
+            return;
+        }
+
+        System.out.print("Comment (blank = none): ");
+        String comment = scanner.nextLine().trim();
+        if (comment.isEmpty()) comment = null;
+
+        app.dao.AssetDAO assetDAO = new app.dao.AssetDAO();
+        Asset asset = assetDAO.findById(booking.getAssetId());
+        Integer ratedUserId = asset != null ? asset.getOwnerId() : null;
+
+        Rating rating = new Rating(
+                bookingId,
+                myId,
+                ratedUserId,
+                ratingValue,
+                comment
+        );
+
+        Rating result = ratingService.createRating(rating, booking);
+        if (result != null) {
+            System.out.println("rating submitted!");
+        } else {
+            System.out.println("failed to submit rating");
+        }
+    }
+
+    private void viewMyRatings() {
+        int myId = session.getActiveUser().getId();
+        List<Rating> ratings = ratingService.findByRatedUser(myId);
+
+        if (ratings.isEmpty()) {
+            System.out.println("no ratings received yet");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("[my received ratings]");
+        for (Rating r : ratings) {
+            System.out.println("booking=" + r.getBookingId()
+                    + " | " + r.getRatingValue() + " stars"
+                    + " | " + (r.getComment() != null ? r.getComment() : "no comment")
+                    + " | from userId=" + r.getReviewerId());
+        }
+    }
+
+    private void viewAverageForUser() {
+        Integer userId = promptInt("User id: ");
+        if (userId == null) return;
+
+        double avg = ratingService.getAverageForUser(userId);
+        if (avg == 0.0) {
+            System.out.println("no ratings yet for user id=" + userId);
+        } else {
+            System.out.println("average rating for user id=" + userId + " : " + avg + " stars");
+        }
+    }
+
+    private void viewAverageForAsset() {
+        Integer assetId = promptInt("Asset id: ");
+        if (assetId == null) return;
+
+        double avg = ratingService.getAverageForAsset(assetId);
+        if (avg == 0.0) {
+            System.out.println("no ratings yet for asset id=" + assetId);
+        } else {
+            System.out.println("average rating for asset id=" + assetId + " : " + avg + " stars");
         }
     }
 
@@ -618,7 +739,7 @@ public class TerminalApp {
 
     private Integer promptInt(String label) {
         System.out.print(label);
- 
+
         try {
             return Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {

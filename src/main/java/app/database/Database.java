@@ -22,7 +22,8 @@ public class Database {
     // private static final String DB_DIR = System.getProperty("user.home") + java.io.File.separator + "ShareSpace";
     // private static final String URL = "jdbc:sqlite:" + DB_DIR + java.io.File.separator + "sharespace.db";
 
-    private static Connection connection;
+    private static Connection connection; //variable connection type connection
+    //private static testhak setter bch najem nodkhlelha
 
     /**
      * Initialize method to set up the database from schema.sql and seed.sql.
