@@ -5,9 +5,7 @@
 - [x] DB Models
 - [x] DAOs
 - [x] Services
-
-- [ ] Logger
-    - Note: Add a Logger framework
+- [x] Logger
 
 - [ ] UI
     - Note: Admin Panel would need a dedicated UI panel
@@ -70,12 +68,14 @@ java -jar /target/ShareSpace-X.Y.Z.jar
 | Language   | Java 25                                |
 | Build      | Maven (shade, javadoc, exec plugins)   |
 | Database   | SQLite via JDBC                        |
-| Encryption | BCrypt (jbcrypt) password hashing      |
+| Encryption | BCrypt (jbcrypt)                       |
 | JSON       | Jackson (asset metadata serialization) |
-| UI         | JavaFX (planned)                       |
+| Logs       | SLF4J with Logback                     |
+| Packaging  | JPackage (Packaging script)            |
+| UI         | JavaFX                                 |
 | CI/CD      | GitHub Actions                         |
 
-**Architecture:** DB Models -> DAOs -> Services -> JavaFX UI (planned)  
+**Architecture:** DB Models -> DAOs -> Services -> JavaFX UI
 
 ## JavaDoc
 
