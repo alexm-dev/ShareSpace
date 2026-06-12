@@ -7,10 +7,6 @@ import java.util.List;
 /**
  * Service for managing ratings.
  * Handles business logic for submitting and retrieving ratings.
- *
- * Note: Ratings are immutable once submitted.
- * Update and delete operations are not supported by design.
- * This ensures trust and fairness in the ShareSpace community.
  */
 public class RatingService {
 
@@ -43,6 +39,16 @@ public class RatingService {
     }
 
     /**
+     * Returns all ratings submitted by a specific reviewer.
+     *
+     * @param reviewerId the id of the reviewer
+     * @return list of ratings, empty if none exist
+     */
+    public List<Rating> findByReviewr(int reviewerId) {
+        return ratingDAO.findByReviewerId(reviewerId);
+    }
+
+    /**
      * Returns all ratings for a specific booking.
      *
      * @param bookingId the id of the booking
@@ -50,6 +56,16 @@ public class RatingService {
      */
     public List<Rating> findByBooking(int bookingId) {
         return ratingDAO.findByBookingId(bookingId);
+    }
+
+    /**
+     * Returns all ratings for a specific asset.
+     *
+     * @param assetId the id of the asset
+     * @return list of ratings, empty if none exist
+     */
+    public List<Rating> findByAsset(int assetId) {
+        return ratingDAO.findByAssetId(assetId);
     }
 
     /**
@@ -71,12 +87,4 @@ public class RatingService {
     public double getAverageForUser(int userId) {
         return ratingDAO.findAverageRatingForUser(userId);
     }
-
-    // Note: updateRating() is not implemented.
-    // Ratings are immutable once submitted; a user cannot change
-    // their review after it has been posted.
-
-    // Note: deleteRating() is not implemented.
-    // Ratings are immutable once submitted; a user cannot delete
-    // their review after it has been posted.
 }
