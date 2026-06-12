@@ -4,8 +4,7 @@
 
 - [x] DB Models
 - [x] DAOs
-- [ ] Services
-    - Missing: `BookingService` and `RatingService`
+- [x] Services
 
 - [ ] Logger
     - Note: Add a Logger framework
