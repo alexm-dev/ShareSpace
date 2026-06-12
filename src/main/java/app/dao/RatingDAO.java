@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Data Access Object for the Rating entity.
  *
- * Adds finders by booking and by rated user. Update is not supported since
+ * Adds finders by booking, rated user, reviewer and asset. Update is not supported since
  * ratings are immutable once submitted; the inherited update method throws
  * UnsupportedOperationException.
  *
@@ -24,13 +24,12 @@ import java.util.List;
  */
 public class RatingDAO extends BaseDAO<Rating, Integer> {
 
-    private static final DateTimeFormatter FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /** The columns to select for findById and findAll, in mapRow order. */
     private static final String[] COLUMNS = {
-            "id", "booking_id", "reviewer_id", "rated_user_id",
-            "rating", "comment", "created_time"
+        "id", "booking_id", "reviewer_id", "rated_user_id",
+        "rating", "comment", "created_time"
     };
 
     /** The name of the database table this DAO manages. */
@@ -58,7 +57,7 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
                 rs.getInt("rating"),
                 rs.getString("comment"),
                 LocalDateTime.parse(rs.getString("created_time"), FMT)
-        );
+                );
     }
 
     /**
@@ -70,8 +69,8 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
     @Override
     public boolean create(Rating rating) {
         String sql = "INSERT INTO ratings "
-                + "(booking_id, reviewer_id, rated_user_id, rating, comment) "
-                + "VALUES (?, ?, ?, ?, ?)";
+            + "(booking_id, reviewer_id, rated_user_id, rating, comment) "
+            + "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, rating.getBookingId());
             stmt.setInt(2, rating.getReviewerId());
@@ -123,6 +122,44 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
     }
 
     /**
+     * Returns all ratings written by a given reviewer.
+     *
+     * @param reviewerId the reviewing user id
+     * @return list of ratings, empty if the reviewer has none
+     */
+    public List<Rating> findByReviewerId(int reviewerId) {
+        return findByIntColumn("reviewer_id", reviewerId, "Failed to find ratings by reviewer id");
+    }
+
+    /**
+     * Returns all ratings attached to a given asset.
+     * Joins ratings with bookings to resolve the asset behind each rating.
+     *
+     * @param assetId the asset id
+     * @return list of ratings, empty if the asset has none
+     */
+    public List<Rating> findByAssetId(int assetId) {
+        List<Rating> list = new ArrayList<>();
+        StringBuilder cols = new StringBuilder();
+        for (int i = 0; i < COLUMNS.length; i++) {
+            if (i > 0) cols.append(", ");
+            cols.append("r.").append(COLUMNS[i]);
+        }
+        String sql = "SELECT " + cols + " FROM ratings r "
+            + "JOIN bookings b ON r.booking_id = b.id "
+            + "WHERE b.asset_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, assetId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find ratings by asset id", e);
+        }
+        return list;
+    }
+
+    /**
      * Returns the average rating for a specific asset.
      * Joins ratings with bookings to find all ratings for an asset.
      *
@@ -131,8 +168,8 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
      */
     public double findAverageRatingForAsset(int assetId) {
         String sql = "SELECT AVG(r.rating) FROM ratings r "
-                + "JOIN bookings b ON r.booking_id = b.id "
-                + "WHERE b.asset_id = ?";
+            + "JOIN bookings b ON r.booking_id = b.id "
+            + "WHERE b.asset_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, assetId);
             try (ResultSet rs = stmt.executeQuery()) {

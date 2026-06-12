@@ -13,7 +13,7 @@ import java.util.List;
  *
  * Note: Ratings are immutable once submitted.
  * Update and delete operations are not supported by design.
- * This ensures trust and fairness in the ShareSpace community —
+ * This ensures trust and fairness in the ShareSpace community.
  */
 public class RatingService {
 
@@ -80,7 +80,8 @@ public class RatingService {
      * @return the average rating as a double
      */
     public double getAverageForAsset(int assetId) {
-        return ratingDAO.findAverageRatingForAsset(assetId);
+        List<Rating> ratings = ratingDAO.findByAssetId(assetId);
+        return ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
     }
 
     /**
@@ -90,14 +91,15 @@ public class RatingService {
      * @return the average rating as a double
      */
     public double getAverageForUser(int userId) {
-        return ratingDAO.findAverageRatingForUser(userId);
+        List<Rating> ratings = ratingDAO.findByRatedUserId(userId);
+        return ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
     }
 
     // Note: updateRating() is not implemented.
-    // Ratings are immutable once submitted — a user cannot change
+    // Ratings are immutable once submitted; a user cannot change
     // their review after it has been posted.
 
     // Note: deleteRating() is not implemented.
-    // Ratings are immutable once submitted — a user cannot delete
+    // Ratings are immutable once submitted; a user cannot delete
     // their review after it has been posted.
 }
