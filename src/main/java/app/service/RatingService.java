@@ -1,10 +1,7 @@
 package app.service;
 
-import app.dao.BookingDAO;
 import app.dao.RatingDAO;
-import app.model.Booking;
 import app.model.Rating;
-import app.util.Logger;
 import java.util.List;
 
 /**
@@ -18,39 +15,21 @@ import java.util.List;
 public class RatingService {
 
     private final RatingDAO ratingDAO;
-    private final BookingDAO bookingDAO;
 
     public RatingService() {
         this.ratingDAO = new RatingDAO();
-        this.bookingDAO = new BookingDAO();
     }
 
     /**
      * Creates a new rating.
      * First checks if the booking exists, then creates the rating.
      *
-     * @param rating  the rating to create
-     * @param booking the booking to check
-     * @return the created rating, or null if booking not found
+     * @param rating the rating to create
+     * @return the created rating
      */
-    public Rating createRating(Rating rating, Booking booking) {
-
-        // check if the booking exists
-        Booking existingBooking = bookingDAO.findById(booking.getId());
-        if (existingBooking == null) {
-            Logger.warn("Booking not found");
-            return null;
-        }
-
-        // create the rating
-        boolean success = ratingDAO.create(rating);
-        if (success) {
-            Logger.info("Rating created for booking " + booking.getId());
-            return rating;
-        } else {
-            Logger.warn("Failed to create rating");
-            return null;
-        }
+    public Rating submitRating(Rating rating) {
+        ratingDAO.create(rating);
+        return rating;
     }
 
     /**

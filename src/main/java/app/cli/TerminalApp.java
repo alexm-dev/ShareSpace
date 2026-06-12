@@ -678,8 +678,8 @@ public class TerminalApp {
                 comment
         );
 
-        Rating result = ratingService.createRating(rating, booking);
-        if (result != null) {
+        Rating result = ratingService.submitRating(rating);
+        if (result.getId() > 0) {
             System.out.println("rating submitted!");
         } else {
             System.out.println("failed to submit rating");
