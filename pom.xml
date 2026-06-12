@@ -66,7 +66,6 @@
         </configuration>
       </plugin>
 
-      <!-- run the JavaFX app: mvn javafx:run -->
       <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>
