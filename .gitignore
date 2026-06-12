@@ -2,6 +2,7 @@
 target/
 dist/
 out/
+logs/
 *.class
 *.jar
 *.war

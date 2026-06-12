@@ -1,21 +1,23 @@
 package app.util;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import org.slf4j.LoggerFactory;
 
 /**
- * logger for the service layer.
+ * Application logger.
+ *
+ * Thin facade over SLF4J so call sites stay simple (Logger.info(...), etc.).
+ * Output destinations, levels and the per-run log file are configured in
+ * src/main/resources/logback.xml.
  */
-// TODO: Refactor to use proper logging framework for future UI integration.
 public class Logger {
 
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger("ShareSpace");
     private static boolean debugEnabled = false;
 
     private Logger() {}
 
     /**
-     * Enables ot disables debug logging.
+     * Enables or disables debug logging.
      * @param enabled true to enable debug logging, false to disable
      */
     public static void setDebug(boolean enabled) { debugEnabled = enabled; }
@@ -29,41 +31,34 @@ public class Logger {
      * Logs a debug message if debug logging is enabled.
      */
     public static void debug(String message) {
-        if (debugEnabled) System.out.println(stamp() + " [DEBUG] " + message);
+        if (debugEnabled) LOG.debug(message);
     }
 
-    /** 
+    /**
      * Logs an info message.
      */
     public static void info(String message) {
-        System.out.println(stamp() + " [INFO ] " + message);
+        LOG.info(message);
     }
 
     /**
      * Logs a warning message.
      */
     public static void warn(String message) {
-        System.out.println(stamp() + " [WARN] " + message);
+        LOG.warn(message);
     }
 
     /**
      * Logs an error message.
      */
     public static void error(String message) {
-        System.err.println(stamp() + " [ERROR] " + message);
+        LOG.error(message);
     }
 
     /**
-     * Logs an error message with a throwable.
+     * Logs an error message with a throwable (full stack trace).
      */
     public static void error(String message, Throwable t) {
-        System.err.println(stamp() + " [ERROR] " + message + " - " + t.getMessage());
-    }
-
-    /**
-     * Returns the current time formatted as a string.
-     */
-    private static String stamp() {
-        return LocalTime.now().format(FMT);
+        LOG.error(message, t);
     }
 }
