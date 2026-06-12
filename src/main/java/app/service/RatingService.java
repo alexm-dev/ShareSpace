@@ -59,8 +59,7 @@ public class RatingService {
      * @return the average rating as a double
      */
     public double getAverageForAsset(int assetId) {
-        List<Rating> ratings = ratingDAO.findByAssetId(assetId);
-        return ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
+        return ratingDAO.findAverageRatingForAsset(assetId);
     }
 
     /**
@@ -70,8 +69,7 @@ public class RatingService {
      * @return the average rating as a double
      */
     public double getAverageForUser(int userId) {
-        List<Rating> ratings = ratingDAO.findByRatedUserId(userId);
-        return ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
+        return ratingDAO.findAverageRatingForUser(userId);
     }
 
     // Note: updateRating() is not implemented.
