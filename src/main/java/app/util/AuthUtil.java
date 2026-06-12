@@ -14,7 +14,7 @@ public class AuthUtil {
     );
 
     private static final int HASH_WORK_FACTOR = 12;
-    private static final int MIN_PASSWORD_LENGTH = 12;
+    private static final int MIN_PASSWORD_LENGTH = 8;
 
     /** description of the rules, for error messages in the UI. */
     public static final String PASSWORD_RULES = "password must be at least " + MIN_PASSWORD_LENGTH
