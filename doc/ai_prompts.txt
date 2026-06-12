@@ -500,10 +500,9 @@ Key things to note:
 - `stmt.setXxx(index, value)` — index starts at **1**, not 0
 "
 
-
-
+------------------------------------------------------------------------------------------------
 DateTime calculation
-
+------------------------------------------------------------------------------------------------
 Prompt:
 "
 Hey there. How can I calculate the total time difference in the calculateCost function:
@@ -572,6 +571,9 @@ return dailyRate * days;
 Which pricing model are you using: **prorated partial days** or **rounded-up full days**?
 "
 
+------------------------------------------------------------------------------------------------
+Apply Discount logic to BookingService
+------------------------------------------------------------------------------------------------
 
 Prompt: 
 "
@@ -737,4 +739,103 @@ double days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
 ```
 
 because the result is fractional and you're dividing by a `double`.
+"
+
+----------------------------------------------------------------------------------
+Logger Framework
+----------------------------------------------------------------------------------
+
+
+Prompt:
+"
+How to implement the slf4j and logback loggerframework into the POM.xml and how to actually set the logger framework up with an own schema ?
+"
+
+Answer:
+"
+Here's the setup:
+
+**1. pom.xml dependencies**
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.13</version>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.5.6</version>
+    </dependency>
+</dependencies>
+```
+
+`logback-classic` pulls in `logback-core` and the SLF4J binding transitively, so that's all you need. Just make sure nothing else on the classpath provides another SLF4J binding (e.g. `slf4j-simple`) — check with `mvn dependency:tree` and exclude conflicts if needed.
+
+**2. Use it in code**
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class MyClass {
+    private static final Logger logger = LoggerFactory.getLogger(MyClass.class);
+
+    public void doSomething() {
+        logger.info("Starting operation");
+        logger.debug("Value: {}", someValue);
+        logger.error("Failed", exception);
+    }
+}
+```
+
+**3. Custom config via `logback.xml`**
+
+Put this in `src/main/resources/logback.xml` — Logback finds it automatically on startup.
+
+```xml
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- override level for a specific package -->
+    <logger name="com.example.myapp" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
+```
+
+**Notes:**
+
+- `logback-test.xml` on the test classpath overrides `logback.xml` during `mvn test`, useful for noisier/quieter test logging.
+- `additivity="false"` stops a logger's messages from also being handled by root's appenders (avoids duplicate lines).
+- `<configuration scan="true">` enables auto-reload if the XML file changes at runtime.
+- For conditional logic (`<if>`/`<then>` tags, e.g. switching appenders by environment), add `org.codehaus.janino:janino` as a dependency — Logback needs it to evaluate conditions.
+- `%logger{36}` abbreviates the package path to keep log lines to a reasonable width.
+
+That's the full loop: dependencies → code calls → `logback.xml` controls format, levels, and destinations without touching code.
 "
