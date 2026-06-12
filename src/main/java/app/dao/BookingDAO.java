@@ -81,7 +81,7 @@ public class BookingDAO extends BaseDAO<Booking, Integer> {
             stmt.setInt(2, booking.getRenterId());
             stmt.setString(3, booking.getStartTime().toString());
             stmt.setString(4, booking.getEndTime().toString());
-            stmt.setString(5, booking.getStatus());
+            stmt.setString(5, booking.getStatus().getDbValue());
             stmt.setDouble(6, booking.getTotalCost());
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
@@ -111,7 +111,7 @@ public class BookingDAO extends BaseDAO<Booking, Integer> {
     public boolean update(Booking booking) {
         String sql = "UPDATE bookings SET status = ?, total_cost = ?, updated_time = CURRENT_TIMESTAMP WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, booking.getStatus());
+            stmt.setString(1, booking.getStatus().getDbValue());
             stmt.setDouble(2, booking.getTotalCost());
             stmt.setInt(3, booking.getId());
             return stmt.executeUpdate() > 0;
