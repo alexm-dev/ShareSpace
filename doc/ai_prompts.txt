@@ -501,3 +501,240 @@ Key things to note:
 "
 
 
+
+DateTime calculation
+
+Prompt:
+"
+Hey there. How can I calculate the total time difference in the calculateCost function:
+
+    public double calculateCost(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
+        var dailyRate = assetDAO.findById(assetId).getDailyRate();
+        double totalCost = dailyRate * ();
+    }
+
+the totalCost is dailyRate times the time for the "contract".
+"
+
+Answer:
+"
+
+It depends on how your `dailyRate` is defined.
+
+If `dailyRate` is the cost **per day**, you can calculate the duration between the two timestamps and convert it to days:
+
+```java
+import java.time.Duration;
+
+public double calculateCost(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
+    double dailyRate = assetDAO.findById(assetId).getDailyRate();
+
+    long hours = Duration.between(startTime, endTime).toHours();
+    double days = hours / 24.0;
+
+    return dailyRate * days;
+}
+```
+
+Or more directly:
+
+```java
+public double calculateCost(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
+    double dailyRate = assetDAO.findById(assetId).getDailyRate();
+
+    double days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
+
+    return dailyRate * days;
+}
+```
+
+### Example
+
+* `dailyRate = 100`
+* Contract duration = 36 hours = 1.5 days
+
+Result:
+
+```java
+100 * 1.5 = 150
+```
+
+If your business rules charge **whole days only** (e.g., 1 hour = 1 full day, 25 hours = 2 days), use:
+
+```java
+long days = (long) Math.ceil(
+    Duration.between(startTime, endTime).toMinutes() / (24.0 * 60)
+);
+
+return dailyRate * days;
+```
+
+Which pricing model are you using: **prorated partial days** or **rounded-up full days**?
+"
+
+
+Prompt: 
+"
+package app.service;
+
+import app.model.Booking;
+import app.dao.BookingDAO;
+import app.model.Asset;
+import app.dao.AssetDAO;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.List;
+
+public class BookingService {
+
+    private final BookingDAO bookingDAO;
+    private final AssetDAO assetDAO;
+
+    public BookingService() {
+        this.bookingDAO = new BookingDAO();
+        this.assetDAO = new AssetDAO();
+    }
+
+    public double calculateCost(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
+        double dailyRate = assetDAO.findById(assetId).getDailyRate();
+
+        long days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
+
+        return dailyRate * days;
+    }
+
+    public Booking createBooking(int assetId, int renterId, LocalDateTime startTime, LocalDateTime endTime) {
+        double totalCost = calculateCost(assetId, startTime, endTime);
+        Booking booking = new Booking(assetId, renterId, startTime, endTime, status, totalCost)
+    }
+
+    public Asset getBookedAsset(int assetId) {
+        return assetDAO.findById(assetId);
+    }
+
+    public List<Asset> getBookingsByOwner(int ownerId) {
+        return assetDAO.findByOwnerId(ownerId);
+    }
+
+}
+
+ok so there needs to be a servive method that can be set to activae the discount if wanted. The discount then needs to be also customizable via method for the UI ... 
+"
+
+Answer: 
+"
+
+A clean approach is to make the discount configuration part of the service state rather than hard-coding it into `calculateCost()`.
+
+For example:
+
+```java
+public class BookingService {
+
+    private final BookingDAO bookingDAO;
+    private final AssetDAO assetDAO;
+
+    private boolean discountEnabled = false;
+    private int discountAfterDays = 3;
+    private double discountPercentage = 20.0;
+
+    public BookingService() {
+        this.bookingDAO = new BookingDAO();
+        this.assetDAO = new AssetDAO();
+    }
+
+    public void enableDiscount(boolean enabled) {
+        this.discountEnabled = enabled;
+    }
+
+    public void configureDiscount(int afterDays, double percentage) {
+        this.discountAfterDays = afterDays;
+        this.discountPercentage = percentage;
+    }
+
+    public double calculateCost(int assetId,
+                                LocalDateTime startTime,
+                                LocalDateTime endTime) {
+
+        double dailyRate = assetDAO.findById(assetId).getDailyRate();
+
+        double days = Duration.between(startTime, endTime).toMinutes()
+                / (24.0 * 60);
+
+        // round up to half days
+        double billableDays = Math.ceil(days * 2) / 2.0;
+
+        if (!discountEnabled || billableDays <= discountAfterDays) {
+            return billableDays * dailyRate;
+        }
+
+        double discountedRate =
+                dailyRate * (1 - discountPercentage / 100.0);
+
+        return (discountAfterDays * dailyRate)
+                + ((billableDays - discountAfterDays) * discountedRate);
+    }
+}
+```
+
+Usage:
+
+```java
+BookingService bookingService = new BookingService();
+
+bookingService.enableDiscount(true);
+bookingService.configureDiscount(3, 15.0); // after 3 days, 15% off
+```
+
+However, if discounts are configured **per booking** or **per asset**, I'd avoid storing mutable settings in the service. Services are often shared objects, and changing the discount for one user could affect another.
+
+A better design is:
+
+```java
+public double calculateCost(
+        int assetId,
+        LocalDateTime startTime,
+        LocalDateTime endTime,
+        boolean discountEnabled,
+        int discountAfterDays,
+        double discountPercentage) {
+    ...
+}
+```
+
+or create a dedicated configuration object:
+
+```java
+public class DiscountPolicy {
+    private boolean enabled;
+    private int afterDays;
+    private double percentage;
+}
+```
+
+Then:
+
+```java
+double total = bookingService.calculateCost(
+        assetId,
+        startTime,
+        endTime,
+        discountPolicy);
+```
+
+That scales much better once the UI allows different discount settings for different assets or owners. Also, note that your current code has a compile error:
+
+```java
+long days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
+```
+
+should be:
+
+```java
+double days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
+```
+
+because the result is fractional and you're dividing by a `double`.
+"
