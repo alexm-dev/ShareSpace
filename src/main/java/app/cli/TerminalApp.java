@@ -1,9 +1,14 @@
 package app.cli;
 
 import app.model.*;
+import app.model.enums.BookingStatus;
 import app.service.*;
 import app.util.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +28,7 @@ public class TerminalApp {
     private final AssetService assetService = new AssetService();
     private final CatalogService catalogService = new CatalogService();
     private final RatingService ratingService = new RatingService();
+    private final BookingService bookingService = new BookingService();
     private final SessionService session;
     private final AdminMenu adminMenu;
 
@@ -86,7 +92,7 @@ public class TerminalApp {
         System.out.println("5. Manage roles");
         System.out.println("6. Delete account");
         if (isLender) System.out.println("7. My listings");
-        if (isRenter) System.out.println("8. My bookings (not yet)");
+        if (isRenter) System.out.println("8. My bookings");
         System.out.println("r. Ratings");
         System.out.println("9. Toggle debug logs (" + (Logger.isDebug() ? "ON" : "OFF") + ")");
         System.out.println("a. Admin / Debug");
@@ -106,7 +112,7 @@ public class TerminalApp {
                 else System.out.println("unknown option");
             }
             case "8" -> {
-                if (isRenter) System.out.println("BookingService not implemented yet.");
+                if (isRenter) bookingsMenu();
                 else System.out.println("unknown option");
             }
             case "r" -> ratingsMenu();
@@ -331,7 +337,8 @@ public class TerminalApp {
     }
 
     private void printAssetDetails(Asset a) {
-        Location loc = assetService.findLocationById(a.getAssetLocationId());
+        int viewerId = session.isLoggedIn() ? session.getActiveUser().getId() : -1;
+        Location loc = assetService.getLocationFor(a.getId(), viewerId);
         if (loc != null) {
             System.out.println("  location: " + formatLocation(loc));
         }
@@ -346,7 +353,9 @@ public class TerminalApp {
 
     private String formatLocation(Location l) {
         StringBuilder sb = new StringBuilder();
-        sb.append(l.getStreetAddress()).append(", ");
+        if (l.getStreetAddress() != null && !l.getStreetAddress().isBlank()) {
+            sb.append(l.getStreetAddress()).append(", ");
+        }
         sb.append(l.getPostalCode()).append(" ").append(l.getCity());
         if (l.getDistrict() != null && !l.getDistrict().isBlank()) {
             sb.append(" (").append(l.getDistrict()).append(")");
@@ -363,6 +372,7 @@ public class TerminalApp {
             System.out.println("2. Add new listing");
             System.out.println("3. Update a listing");
             System.out.println("4. Delete a listing");
+            System.out.println("5. Bookings on my listings");
             System.out.println("0. Back");
 
             switch (prompt()) {
@@ -370,6 +380,7 @@ public class TerminalApp {
                 case "2" -> createListing();
                 case "3" -> updateListing();
                 case "4" -> deleteListing();
+                case "5" -> manageIncomingBookings();
                 case "0" -> { return; }
                 default -> System.out.println("unknown option");
             }
@@ -645,7 +656,7 @@ public class TerminalApp {
             return;
         }
 
-        if (!booking.getStatus().equals("completed")) {
+        if (booking.getStatus() != BookingStatus.COMPLETE) {
             System.out.println("booking is not completed yet - status: " + booking.getStatus());
             return;
         }
@@ -729,6 +740,170 @@ public class TerminalApp {
         }
     }
 
+    // bookings menu and methods
+    private void bookingsMenu() {
+        while (true) {
+            System.out.println();
+            System.out.println("[my bookings]");
+            System.out.println("1. Book an asset");
+            System.out.println("2. View my bookings");
+            System.out.println("3. Confirm a booking (testing)");
+            System.out.println("4. Mark a booking complete (testing)");
+            System.out.println("5. Cancel a booking");
+            System.out.println("0. Back");
+
+            switch (prompt()) {
+                case "1" -> createBooking();
+                case "2" -> viewMyBookings();
+                case "3" -> progressMyBooking("confirm");
+                case "4" -> progressMyBooking("complete");
+                case "5" -> cancelMyBooking();
+                case "0" -> { return; }
+                default -> System.out.println("unknown option");
+            }
+        }
+    }
+
+    private void createBooking() {
+        Integer assetId = promptInt("Asset id to book: ");
+        if (assetId == null) return;
+
+        Asset asset = assetService.findById(assetId);
+        if (asset == null) {
+            System.out.println("asset not found");
+            return;
+        }
+
+        int myId = session.getActiveUser().getId();
+        if (asset.getOwnerId() == myId) {
+            System.out.println("you cannot book your own asset");
+            return;
+        }
+
+        LocalDateTime start = promptDate("Start date (yyyy-MM-dd): ");
+        if (start == null) return;
+        LocalDateTime end = promptDate("End date (yyyy-MM-dd): ");
+        if (end == null) return;
+        if (end.isBefore(start)) {
+            System.out.println("end date must be on or after start date");
+            return;
+        }
+
+        double cost = bookingService.calculateCost(assetId, start, end);
+        System.out.print("estimated cost is " + cost + " - confirm? (y/n): ");
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) {
+            System.out.println("cancelled");
+            return;
+        }
+
+        Booking booking = bookingService.createBooking(assetId, myId, start, end);
+        if (booking != null) {
+            System.out.println("booking created (id=" + booking.getId()
+                    + ", status=" + booking.getStatus() + ")");
+        } else {
+            System.out.println("failed to create booking");
+        }
+    }
+
+    private void viewMyBookings() {
+        int myId = session.getActiveUser().getId();
+        List<Booking> bookings = bookingService.findByRenter(myId);
+        if (bookings.isEmpty()) {
+            System.out.println("no bookings yet");
+            return;
+        }
+        System.out.println();
+        System.out.println("[my bookings]");
+        for (Booking b : bookings) {
+            System.out.println(formatBooking(b));
+        }
+    }
+
+    private void cancelMyBooking() {
+        Integer bookingId = promptInt("Booking id to cancel: ");
+        if (bookingId == null) return;
+        if (bookingService.cancelBooking(bookingId)) {
+            System.out.println("booking cancelled");
+        } else {
+            System.out.println("failed - booking not found");
+        }
+    }
+
+    private void progressMyBooking(String action) {
+        Integer bookingId = promptInt("Booking id: ");
+        if (bookingId == null) return;
+
+        int me = session.getActiveUser().getId();
+        boolean ownsIt = bookingService.findByRenter(me).stream()
+                .anyMatch(b -> b.getId() == bookingId);
+        if (!ownsIt) {
+            System.out.println("not your booking");
+            return;
+        }
+
+        boolean ok = action.equals("confirm")
+                ? bookingService.confirmBooking(bookingId)
+                : bookingService.completeBooking(bookingId);
+        System.out.println(ok ? "done" : "failed");
+    }
+
+    private void manageIncomingBookings() {
+        int ownerId = session.getActiveUser().getId();
+        List<Asset> mine = assetService.findByOwner(ownerId);
+        if (mine.isEmpty()) {
+            System.out.println("you have no listings");
+            return;
+        }
+
+        List<Booking> incoming = new ArrayList<>();
+        for (Asset a : mine) {
+            incoming.addAll(bookingService.findByAsset(a.getId()));
+        }
+        if (incoming.isEmpty()) {
+            System.out.println("no bookings on your listings yet");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("[bookings on my listings]");
+        for (Booking b : incoming) {
+            System.out.println(formatBooking(b) + " | renter=" + b.getRenterId());
+        }
+
+        System.out.println("c. Confirm a booking");
+        System.out.println("x. Decline a booking");
+        System.out.println("f. Mark a booking complete");
+        System.out.println("0. Back");
+
+        switch (prompt().toLowerCase()) {
+            case "c" -> applyBookingAction("confirm");
+            case "x" -> applyBookingAction("decline");
+            case "f" -> applyBookingAction("complete");
+            case "0" -> {}
+            default -> System.out.println("unknown option");
+        }
+    }
+
+    private void applyBookingAction(String action) {
+        Integer bookingId = promptInt("Booking id: ");
+        if (bookingId == null) return;
+        boolean ok = switch (action) {
+            case "confirm" -> bookingService.confirmBooking(bookingId);
+            case "decline" -> bookingService.cancelBooking(bookingId);
+            case "complete" -> bookingService.completeBooking(bookingId);
+            default -> false;
+        };
+        System.out.println(ok ? "done" : "failed - booking not found");
+    }
+
+    private String formatBooking(Booking b) {
+        return "id=" + b.getId()
+                + " | asset=" + b.getAssetId()
+                + " | " + b.getStartTime().toLocalDate() + " -> " + b.getEndTime().toLocalDate()
+                + " | " + b.getStatus()
+                + " | " + b.getTotalCost();
+    }
+
     // Prompt helpers
 
     private String promptOrKeep(String label, String current) {
@@ -755,6 +930,17 @@ public class TerminalApp {
             return Double.parseDouble(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
             System.out.println("bad number");
+            return null;
+        }
+    }
+
+    private LocalDateTime promptDate(String label) {
+        System.out.print(label);
+
+        try {
+            return LocalDate.parse(scanner.nextLine().trim()).atStartOfDay();
+        } catch (DateTimeParseException e) {
+            System.out.println("bad date (expected yyyy-MM-dd)");
             return null;
         }
     }
