@@ -87,4 +87,14 @@ public class RatingService {
     public double getAverageForUser(int userId) {
         return ratingDAO.findAverageRatingForUser(userId);
     }
+
+    /**
+     * Returns true/false.
+     *
+     * @param ratingId the id of the rating to be deleted
+     * @return true (rating deleted)/ false (failed to delete)
+     */
+    public boolean deleteRating(int ratingId) {
+        return ratingDAO.delete(ratingId);
+    }
 }
