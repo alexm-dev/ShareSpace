@@ -2,13 +2,23 @@
 
 ## TODOs
 
-- [x] DB Models
-- [x] DAOs
-- [x] Services
-- [x] Logger
-
 - [ ] UI
     - Note: Admin Panel would need a dedicated UI panel
+
+- About Page
+- Profile Settings
+- Registration Page -> role assignemnt directly after
+- Create Listing -> redirect to Asset Page
+- My Listing
+- Rating Page
+- Asset Page -> redirect to Booking Page/Update Page
+    - Create Listing
+    - Image upload
+- Asset Booking Page w/ Calendar (renter)
+- Asset Updates (lender)
+
+
+- Other: Dark Mode settings etc..
 
 TerminalApp.java is a temporary testing field to testout the business logic without any UI.
 After we implement a working UI, then we should remove the CLI package.
