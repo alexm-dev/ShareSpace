@@ -52,6 +52,8 @@ public class ShareS extends Application {
     public static void showProfilePage() { showPage(new ProfilePage().build(), false); }
     public static void showLoginPage()   { showPage(new LoginPage().build(), true); }
     public static void showBookingPage() { showPage(new BookingPage().build(), false); }
+    public static void showRegistrationPage() { showPage(new RegistrationPage().build(), true); }
+    public static void showProfileSettingsPage() { showPage(new ProfileSettingsPage().build(), true); }
 
     private static void showPage(VBox root, boolean fitHeight) {
         ScrollPane scrollPane = new ScrollPane(root);
