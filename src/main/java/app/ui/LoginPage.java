@@ -16,8 +16,9 @@ public class LoginPage {
 
         Button back = Ui.button("← Back", 13, "-fx-background-color: transparent;");
         back.setOnAction(e -> ShareS.showStartPage());
-        HBox bar = new HBox(20, back, Ui.spacer(),
-                Ui.button("Create an account", 13, "-fx-background-color: transparent;"));
+        Button createA = Ui.button("Create an account", 13, "-fx-background-color: transparent;");
+        createA.setOnAction(event -> ShareS.showRegistrationPage());
+        HBox bar = new HBox(20, back, Ui.spacer(), createA);
         bar.setAlignment(Pos.CENTER_LEFT);
 
         TextField email = new TextField();
