@@ -17,7 +17,7 @@ public class ProfilePage {
     public VBox build() {
         Region header = Ui.header(
                 new String[]{"CATALOG", "BOOKINGS", "SETTINGS"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, null},
+                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfileSettingsPage},
                 ShareS::showStartPage);
 
         User user = ShareS.session.getActiveUser();
