@@ -11,7 +11,7 @@ public class ShareSpacePage {
     public VBox build() {
         Region header = Ui.header(
                 new String[]{"CATALOG", "ABOUT", "LOGIN"},
-                new Runnable[]{ShareS::showCatalogPage, null, ShareS::showLoginPage},
+                new Runnable[]{ShareS::showCatalogPage, ShareS::showAboutPage, ShareS::showLoginPage},
                 ShareS::showStartPage);
 
         Region banner = Ui.image(0.31);

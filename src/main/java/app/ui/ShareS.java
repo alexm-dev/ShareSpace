@@ -67,4 +67,5 @@ public class ShareS extends Application {
         primaryStage.show();
     }
 
+    public static void showAboutPage() { showPage(new AboutPage().build(), false); }
 }
