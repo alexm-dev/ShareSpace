@@ -9,6 +9,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ProfileSettingsPage {
 
@@ -20,6 +21,7 @@ public class ProfileSettingsPage {
                 ShareS::showStartPage);
 
         User user = ShareS.session.getActiveUser();
+        //what if no user is logged in? code here
 
         HBox title = new HBox(
                 16,
@@ -57,13 +59,12 @@ public class ProfileSettingsPage {
                 "LENDER",
                 "BOTH"
         );
-        roleBox.setValue(null);
         if (hasRenter && hasLender) {roleBox.setValue("BOTH");
         } else if (hasRenter) {roleBox.setValue("RENTER");
         } else if (hasLender) {roleBox.setValue("LENDER");}
         Label placeholder = Ui.light("", 12);
 
-        //delete account
+        //delete account field
         TextField delete = new TextField();
         delete.setPromptText("Delete account");
         delete.setMaxWidth(300);
@@ -71,6 +72,39 @@ public class ProfileSettingsPage {
         Label deleteInfo = Ui.light("To delete your account write 'DELETE'" , 11);
         deleteInfo.setStyle("-fx-text-fill: #e53935;");
         Label deleteError = Ui.light("", 12);
+
+        //delete alert
+        ButtonType deleteButton = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert deleteAlert = new Alert(
+                Alert.AlertType.CONFIRMATION,
+                "Do you really want to delete your account?",
+                deleteButton,
+                cancelButton);
+        deleteAlert.setTitle("Delete Account");
+        deleteAlert.setHeaderText("Warning");
+
+        //location field/box
+        // TODO: add location to settings and manage location. Maybe new sidebar to switch from general to location?
+        TextField city = new TextField();
+        city.setPromptText("city");
+        TextField postalCode = new TextField();
+        postalCode.setPromptText("postalCode");
+        TextField district = new TextField();
+        district.setPromptText("district");
+        TextField streetAddress = new TextField();
+        streetAddress.setPromptText("streetAddress");
+        TextField country = new TextField();
+        country.setPromptText("country");
+
+        VBox locations = new VBox(
+                10,
+                Ui.light("City", 11), city,
+                Ui.light("Postal Code", 11), postalCode,
+                Ui.light("District", 11), district,
+                Ui.light("Street Address", 11), streetAddress,
+                Ui.light("Country", 11), country
+        );
 
 
         //save button with logic
@@ -95,7 +129,7 @@ public class ProfileSettingsPage {
                     emailError.setText("Your email has been updated.");
                     emailError.setStyle("-fx-text-fill: green;");
                 } else {
-                    emailError.setText("Email already exists.");
+                    emailError.setText("Invalid email.");
                     emailError.setStyle("-fx-text-fill: #e53935;");
                 }
             }
@@ -106,38 +140,45 @@ public class ProfileSettingsPage {
                     pwError.setStyle("-fx-text-fill: green;");
                     pw.clear();
                 } else {
-                    pwError.setText("password error?"); //Does an invalid password exist?
+                    pwError.setText("Invalid password.");
                     pwError.setStyle("-fx-text-fill: #e53935;");
+                    pw.clear();
                 }
             }
 
-           switch (roleBox.getValue()) {
-                case "RENTER":
-                    if (!hasRenter) {ShareS.userService.assignRoleToUser(user.getId(), renterID);}
-                    if (hasLender) {ShareS.userService.removeRoleFromUser(user.getId(), lenderId);}
-                    break;
-                case "LENDER":
-                    if (hasRenter) {ShareS.userService.removeRoleFromUser(user.getId(), renterID);}
-                    if (!hasLender) {ShareS.userService.assignRoleToUser(user.getId(), lenderId);}
-                    break;
-                case "BOTH":
-                    if (!hasRenter) {ShareS.userService.assignRoleToUser(user.getId(), renterID);}
-                    if (!hasLender) {ShareS.userService.assignRoleToUser(user.getId(), lenderId);}
-                    break;
-           }
+            String role = roleBox.getValue();
+            if (role != null) {
+                switch (role) {
+                    case "RENTER":
+                        if (!hasRenter) {ShareS.userService.assignRoleToUser(user.getId(), renterID);}
+                        if (hasLender) {ShareS.userService.removeRoleFromUser(user.getId(), lenderId);}
+                        break;
+                    case "LENDER":
+                        if (hasRenter) {ShareS.userService.removeRoleFromUser(user.getId(), renterID);}
+                        if (!hasLender) {ShareS.userService.assignRoleToUser(user.getId(), lenderId);}
+                        break;
+                    case "BOTH":
+                        if (!hasRenter) {ShareS.userService.assignRoleToUser(user.getId(), renterID);}
+                        if (!hasLender) {ShareS.userService.assignRoleToUser(user.getId(), lenderId);}
+                        break;
+                }
+            }
 
             if (!delete.getText().isBlank()) {
-                String enteredText = delete.getText(); //no trim() case sensitive!
+                String enteredText = delete.getText();
                 if (deleteString.equals(enteredText)) {
-                    ShareS.userService.deleteAccount(user.getId());
-                    //maybe a pop-up window to ask 'are you sure you want to delete your account'
-                    //session.logout() or session clear?
-                    //show homepage ?
+                    Optional<ButtonType> result = deleteAlert.showAndWait(); //show alert and save returned
+                    if (result.isPresent() && result.get() == deleteButton) { //is delete-button pressed in alert check
+                        ShareS.userService.deleteAccount(user.getId());
+                        ShareS.session.logout();
+                        ShareS.showStartPage(); //events when delete button is pressed
+                    }
+                }else {
+                    deleteError.setText("Input does not match.");
+                    deleteError.setStyle("-fx-text-fill: #e53935;");
                 }
-            } else {
-                deleteError.setText("Input does not match.");
-                deleteError.setStyle("-fx-text-fill: #e53935;");
             }
+
         });
 
 
