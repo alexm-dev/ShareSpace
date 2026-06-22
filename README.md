@@ -20,6 +20,8 @@
 
 - Other: Dark Mode settings etc..
 
+Create listing tied to blank asset...
+
 TerminalApp.java is a temporary testing field to testout the business logic without any UI.
 After we implement a working UI, then we should remove the CLI package.
 
