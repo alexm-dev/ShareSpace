@@ -108,7 +108,7 @@ public class ProfileSettingsPage {
                 13,
                 "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
         save.setMaxWidth(300);
-        save.setOnAction(e -> {
+        save.setOnAction(event -> {
             if (!username.getText().isBlank()) {
                 if (ShareS.userService.updateUsername(user.getId(), username.getText().trim())) {
                     usernameError.setText("Your username has been updated.");

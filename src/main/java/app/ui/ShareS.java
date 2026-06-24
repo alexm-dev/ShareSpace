@@ -10,6 +10,7 @@ import app.service.UserService;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -53,7 +54,8 @@ public class ShareS extends Application {
     public static void showLoginPage()   { showPage(new LoginPage().build(), true); }
     public static void showBookingPage() { showPage(new BookingPage().build(), false); }
     public static void showRegistrationPage() { showPage(new RegistrationPage().build(), true); }
-    public static void showProfileSettingsPage() { showPage(new ProfileSettingsPage().build(), true); }
+    public static void showProfileSettingsPage() { showPage2(new ProfileSettingsPage().build(), true); }
+    public static void showAboutPage() { showPage2(new AboutPage().build(), false); }
 
     private static void showPage(VBox root, boolean fitHeight) {
         ScrollPane scrollPane = new ScrollPane(root);

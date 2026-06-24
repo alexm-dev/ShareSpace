@@ -23,12 +23,12 @@ public class RegistrationPage {
                 "← Back",
                 13,
                 "-fx-background-color: transparent;");
-        back.setOnAction(e -> ShareS.showStartPage());
+        back.setOnAction(event -> ShareS.showStartPage());
         Button login = Ui.button(
                 "Already have an account?",
                 13,
                 "-fx-background-color: transparent;");
-        login.setOnAction(e -> ShareS.showLoginPage());
+        login.setOnAction(event -> ShareS.showLoginPage());
 
         //horizontal tabs at the top
         HBox htabs = new HBox(
@@ -46,7 +46,7 @@ public class RegistrationPage {
         PasswordField pw = new PasswordField();
         pw.setPromptText("Password");
 
-        //radioboxes for roles
+        //radio boxes for roles
         ToggleGroup group = new ToggleGroup();
         RadioButton roleRenter = new RadioButton("Renter");
         RadioButton roleLender = new RadioButton("Lender");
@@ -71,7 +71,7 @@ public class RegistrationPage {
                 13,
                 "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
         registerBtn.setMaxWidth(Double.MAX_VALUE);
-        registerBtn.setOnAction(e -> {
+        registerBtn.setOnAction(event -> {
             if (username.getText().isBlank()) {error.setText("Username can't be blank."); return;}
 
             RadioButton selected = (RadioButton) group.getSelectedToggle();
