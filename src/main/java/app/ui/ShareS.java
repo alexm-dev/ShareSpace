@@ -67,5 +67,17 @@ public class ShareS extends Application {
         primaryStage.show();
     }
 
-    public static void showAboutPage() { showPage(new AboutPage().build(), false); }
+    private static void showPage2(StackPane root, boolean fitHeight) {
+        ScrollPane scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(fitHeight);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        Scene scene = new Scene(scrollPane);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        primaryStage.setAlwaysOnTop(true);
+    }
+
 }
