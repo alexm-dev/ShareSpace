@@ -1,16 +1,12 @@
 package app.ui;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public class AboutPage {
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "ABOUT", "LOGIN"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showAboutPage, ShareS::showLoginPage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         VBox intro = new VBox(12,
                 Ui.light("WHO WE ARE", 11),
@@ -39,7 +35,7 @@ public class AboutPage {
             }
         }
 
-        return Ui.page(header, intro, mission, values, team, Ui.footer());
+        return Ui.buildPage(intro,mission,values,team);
     }
 
     private VBox value(String title, String desc) {
