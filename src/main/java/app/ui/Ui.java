@@ -1,5 +1,6 @@
 package app.ui;
 
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -15,6 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
+import javafx.util.Duration;
 
 public final class Ui {
 
@@ -157,5 +159,158 @@ public final class Ui {
         root.setPadding(new Insets(0, 60, 40, 60));
         root.setStyle("-fx-background-color: white;");
         return root;
+    }
+
+
+
+    //private and final method for building a page
+    private static VBox menuPanel;
+    private static boolean isOpen = false;
+    private static final double MENU_WIDTH = 200;
+    private static StackPane buildPagerInternal(Node... children) {
+        //logo with event
+        Label logo = bold("ShareSpace®", 19);
+        logo.setStyle("-fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 20;");
+        logo.setOnMouseClicked(event -> ShareS.showStartPage()); //always has ShareSpace top left wit event
+
+        //create sliding menuPanel
+        menuPanel = new VBox(10);
+        menuPanel.setPrefWidth(MENU_WIDTH);
+        menuPanel.setMaxWidth(MENU_WIDTH);
+        menuPanel.setStyle("-fx-background-color: #2c2c2c;");
+        menuPanel.setPadding(new Insets(60, 20, 20, 20));
+        StackPane.setAlignment(menuPanel, Pos.TOP_RIGHT);
+        menuPanel.setTranslateX(MENU_WIDTH);
+
+        //content for the menuPanel
+        //ADD NEW BUTTONS HERE
+        //don't forget to add to panel (method below)
+        Button login = button(
+                "Login/Sign up",
+                13,
+                "-fx-background-color: white;");
+        login.setOnAction(event -> ShareS.showLoginPage());
+        Button profile = button(
+                "Profile/My listings",
+                13,
+                "-fx-background-color: white;");
+        profile.setOnAction(event -> {
+            if (ShareS.session.getActiveUser() != null) {
+                ShareS.showProfilePage();
+            }
+        });
+        Button catalog = button(
+                "Catalog",
+                13,
+                "-fx-background-color: white;");
+        catalog.setOnAction(event -> ShareS.showCatalogPage());
+        Button bookings = button(
+                "(My?) Bookings",
+                13,
+                "-fx-background-color: white;");
+        bookings.setOnAction(event -> {
+            if (ShareS.session.getActiveUser() != null) {
+                ShareS.showBookingPage();
+            }
+        });
+        Button ratings = button(
+                "(My?) Ratings)",
+                13,
+                "-fx-background-color: white;");
+        ratings.setOnAction(event -> {
+            if (ShareS.session.getActiveUser() != null) {
+                //TODO: show ratingsPage
+            }
+        });
+        Button about = button(
+                "About us",
+                13,
+                "-fx-background-color: white;");
+        about.setOnAction(event -> ShareS.showAboutPage());
+        Button settings = button(
+                "Settings",
+                13,
+                "-fx-background-color: white;");
+        settings.setOnAction(event -> {
+            if (ShareS.session.getActiveUser() != null) {
+                ShareS.showProfileSettingsPage();
+            }
+        });
+        Button logout = button(
+                "Logout",
+                13,
+                "-fx-background-color: white;");
+        logout.setOnAction(event -> {
+            if (ShareS.session.getActiveUser() != null) {
+                ShareS.session.logout();
+                ShareS.showStartPage();
+            }
+        });
+
+        //add all buttons to menuPanel
+        if (ShareS.session.getActiveUser() == null)/* not logged in*/ {
+            menuPanel.getChildren().add(login);
+        }else {
+            menuPanel.getChildren().add(profile);
+        }
+        //if new button created add below
+        menuPanel.getChildren().addAll(catalog, bookings, ratings, about, settings);
+        //if logged in show logout else not
+        if (ShareS.session.getActiveUser() != null) {menuPanel.getChildren().add(logout);}
+
+
+        //toggleMenu button
+        Button toggle = getButton();
+
+        //heading is logo + toggle button
+        HBox heading = new HBox(20, logo, spacer(), toggle);
+        heading.setAlignment(Pos.CENTER_LEFT);
+        heading.setPadding(new Insets(16, 0, 16, 0));
+        heading.setStyle("-fx-border-color: transparent transparent #e5e5e5 transparent; -fx-border-width: 0 0 1 0;");
+
+        //combining children(content) with heading and footer
+        VBox mainPage = new VBox();
+        mainPage.setSpacing(40);
+        mainPage.getChildren().add(heading);
+        mainPage.getChildren().addAll(children);
+        mainPage.getChildren().add(footer());
+        mainPage.setFillWidth(true);
+        mainPage.setPadding(new Insets(0, 60, 40, 60));
+        mainPage.setStyle("-fx-background-color: white;");
+
+        StackPane root = new StackPane(mainPage, menuPanel);
+        menuPanel.setAlignment(Pos.TOP_RIGHT);
+
+        return root;
+    }
+
+
+    private static Button getButton() {
+        //icon for toggle button
+        final String MenuIcon = "M4 18h16v-2H4v2zM4 13h16v-2H4v2zM4 8h16V6H4v2z";
+        SVGPath icon = new SVGPath();
+        icon.setContent(MenuIcon);
+        icon.setFill(Color.web("black"));
+        icon.setScaleX(1);
+        icon.setScaleY(1);
+
+        Button toggle = new Button();
+        toggle.setGraphic(icon);
+        toggle.setStyle("-fx-background-color: white; -fx-background-radius: 20;"
+                + " -fx-cursor: hand; -fx-min-width: 30px; -fx-min-height: 30px;"
+                + " -fx-padding: 6;");
+        toggle.setOnAction(event -> {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(1000), menuPanel);
+            tt.setToX(isOpen ? MENU_WIDTH : 0);
+            tt.play();
+            isOpen = !isOpen;
+        });
+        return toggle;
+    }
+
+
+    //public method others can use for building a page
+    static StackPane buildPage(Node... children) {
+        return buildPagerInternal(children);
     }
 }
