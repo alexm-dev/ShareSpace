@@ -5,7 +5,7 @@ import app.model.User;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
@@ -13,12 +13,7 @@ import java.util.Optional;
 
 public class ProfileSettingsPage {
 
-    public VBox build() {
-
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         User user = ShareS.session.getActiveUser();
         //what if no user is logged in? code here
@@ -193,6 +188,6 @@ public class ProfileSettingsPage {
                 save);
         settings.setStyle("-fx-background-color: white;");
 
-        return Ui.page(header, title, settings, Ui.footer());
+        return Ui.buildPage(title, settings);
     }
 }
