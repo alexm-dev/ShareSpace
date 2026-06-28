@@ -480,7 +480,7 @@ public class TerminalApp {
             return;
         }
 
-        String metadata = promptMetadata(sub.getName(), null);
+        String metadata = promptMetadata(categoryNameFor(sub), sub.getName(), null);
 
         System.out.print("City: ");
         String city = scanner.nextLine().trim();
@@ -540,7 +540,7 @@ public class TerminalApp {
         SubCategory sub = catalogService.getSubCategoryById(existing.getSubCategoryId());
         if (sub != null) {
             Map<String, String> current = MetadataUtil.parse(existing.getMetadata());
-            existing.setMetadata(promptMetadataUpdate(sub.getName(), current));
+            existing.setMetadata(promptMetadataUpdate(categoryNameFor(sub), sub.getName(), current));
         }
 
         if (assetService.updateAsset(existing, me)) {
@@ -551,8 +551,16 @@ public class TerminalApp {
         }
     }
 
-    private String promptMetadata(String subCategoryName, Map<String, String> existing) {
-        List<String> keys = MetadataSchema.keysFor(subCategoryName);
+    private String categoryNameFor(SubCategory sub) {
+        return catalogService.getAllCategories().stream()
+                .filter(c -> c.getId() == sub.getCategoryId())
+                .map(Category::getName)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String promptMetadata(String categoryName, String subCategoryName, Map<String, String> existing) {
+        List<String> keys = MetadataSchema.keysFor(categoryName, subCategoryName);
         if (keys.isEmpty()) {
             System.out.println("(no metadata schema for " + subCategoryName + ", skipping)");
             return existing == null ? null : MetadataUtil.serialize(existing);
@@ -570,8 +578,8 @@ public class TerminalApp {
         return MetadataUtil.serialize(map);
     }
 
-    private String promptMetadataUpdate(String subCategoryName, Map<String, String> current) {
-        List<String> keys = MetadataSchema.keysFor(subCategoryName);
+    private String promptMetadataUpdate(String categoryName, String subCategoryName, Map<String, String> current) {
+        List<String> keys = MetadataSchema.keysFor(categoryName, subCategoryName);
         if (keys.isEmpty()) {
             System.out.println("(no metadata schema for " + subCategoryName + ", skipping)");
             return MetadataUtil.serialize(current);

@@ -53,4 +53,25 @@ public final class MetadataUtil {
             throw new RuntimeException("Failed to serialize metadata", e);
         }
     }
+
+    /**
+     * Converts a metadata key into a human-readable string.
+     * Example: "fooBar_baz" -> "Foo bar baz"
+     *
+     * @param key the metadata key
+     * @return a human-readable string
+     */
+    public static String humanizeKey(String key) {
+        if (key == null || key.isBlank()) {
+            return key;
+        }
+        String spaced = key.trim()
+            .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+            .replace('_', ' ')
+            .replace('-', ' ')
+            .replaceAll("\\s+", " ")
+            .trim()
+            .toLowerCase();
+        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+    }
 }
