@@ -75,9 +75,11 @@ public class BookingFlowPage {
         DatePicker start = new DatePicker();
         start.setPromptText("Start date");
         start.setMaxWidth(300);
+        start.setEditable(false);
         DatePicker end = new DatePicker();
         end.setPromptText("End date");
         end.setMaxWidth(300);
+        end.setEditable(false);
 
         Label cost = Ui.bold("", 16);
         Label error = Ui.light("", 12);
