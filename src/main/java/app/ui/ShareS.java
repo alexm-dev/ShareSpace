@@ -59,6 +59,7 @@ public class ShareS extends Application {
     public static void showRegistrationPage() { showPage(new RegistrationPage().build(), true); }
     public static void showProfileSettingsPage() { showPage2(new ProfileSettingsPage().build(), true); }
     public static void showAboutPage() { showPage2(new AboutPage().build(), false); }
+    public static void showRatingPage() { showPage2(new RatingPage().build(), false); }
 
     public static void showCategoryPage(Category category) { showPage(new CategoryPage(category).build(), false); }
     public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build(), false); }

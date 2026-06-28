@@ -278,7 +278,7 @@ public final class Ui {
                 "-fx-background-color: white;");
         ratings.setOnAction(event -> {
             if (ShareS.session.getActiveUser() != null) {
-                //TODO: show ratingsPage
+                ShareS.showRatingPage();
             }
         });
         Button about = button(
