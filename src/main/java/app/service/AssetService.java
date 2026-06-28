@@ -3,8 +3,10 @@ package app.service;
 import app.dao.AssetDAO;
 import app.dao.BookingDAO;
 import app.dao.LocationDAO;
+import app.dao.UserDAO;
 import app.model.Asset;
 import app.model.Location;
+import app.model.User;
 import app.model.enums.BookingStatus;
 
 import java.util.List;
@@ -17,11 +19,13 @@ public class AssetService {
     private final AssetDAO assetDAO;
     private final LocationDAO locationDAO;
     private final BookingDAO bookingDAO;
+    private final UserDAO userDAO;
 
     public AssetService() {
         this.assetDAO = new AssetDAO();
         this.locationDAO = new LocationDAO();
         this.bookingDAO = new BookingDAO();
+        this.userDAO = new UserDAO();
     }
 
     /**
@@ -40,7 +44,19 @@ public class AssetService {
         }
 
         asset.setAssetLocationId(location.getId());
-        return assetDAO.create(asset) ? asset : null;
+        if (!assetDAO.create(asset)) {
+            return null;
+        }
+
+        // Seed the owner's profile location from their first listing, if they have none yet.
+        // After this the owner edits it in profile (or asset) settings, not here.
+        User owner = userDAO.findById(asset.getOwnerId());
+        if (owner != null && owner.getLocationId() == null) {
+            owner.setLocationId(location.getId());
+            userDAO.update(owner);
+        }
+
+        return asset;
     }
 
     /**

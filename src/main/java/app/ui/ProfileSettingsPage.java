@@ -1,5 +1,6 @@
 package app.ui;
 
+import app.model.Location;
 import app.model.Role;
 import app.model.User;
 import javafx.geometry.Pos;
@@ -80,7 +81,8 @@ public class ProfileSettingsPage {
         deleteAlert.setHeaderText("Warning");
 
         //location field/box
-        // TODO: add location to settings and manage location. Maybe new sidebar to switch from general to location?
+        // TODO: maybe new sidebar to switch from general to location?
+        Location currentLocation = ShareS.userService.getLocation(user.getId());
         TextField city = new TextField();
         city.setPromptText("city");
         TextField postalCode = new TextField();
@@ -91,15 +93,16 @@ public class ProfileSettingsPage {
         streetAddress.setPromptText("streetAddress");
         TextField country = new TextField();
         country.setPromptText("country");
+        Label locationError = Ui.light("", 12);
 
-        VBox locations = new VBox(
-                10,
-                Ui.light("City", 11), city,
-                Ui.light("Postal Code", 11), postalCode,
-                Ui.light("District", 11), district,
-                Ui.light("Street Address", 11), streetAddress,
-                Ui.light("Country", 11), country
-        );
+        //prefill with the user's saved location if they already have one
+        if (currentLocation != null) {
+            city.setText(currentLocation.getCity());
+            postalCode.setText(currentLocation.getPostalCode());
+            if (currentLocation.getDistrict() != null) district.setText(currentLocation.getDistrict());
+            streetAddress.setText(currentLocation.getStreetAddress());
+            country.setText(currentLocation.getCountry());
+        }
 
 
         //save button with logic
@@ -159,6 +162,32 @@ public class ProfileSettingsPage {
                 }
             }
 
+            String cityText = city.getText().trim();
+            String postalText = postalCode.getText().trim();
+            String districtText = district.getText().trim();
+            String streetText = streetAddress.getText().trim();
+            String countryText = country.getText().trim();
+            boolean anyLocation = !cityText.isEmpty() || !postalText.isEmpty()
+                    || !districtText.isEmpty() || !streetText.isEmpty() || !countryText.isEmpty();
+            if (anyLocation) {
+                if (cityText.isEmpty() || postalText.isEmpty() || streetText.isEmpty() || countryText.isEmpty()) {
+                    locationError.setText("City, postal code, street address and country are required.");
+                    locationError.setStyle("-fx-text-fill: #e53935;");
+                } else {
+                    Location location = new Location(
+                            cityText, postalText,
+                            districtText.isEmpty() ? null : districtText,
+                            streetText, countryText);
+                    if (ShareS.userService.updateLocation(user.getId(), location)) {
+                        locationError.setText("Your location has been saved.");
+                        locationError.setStyle("-fx-text-fill: green;");
+                    } else {
+                        locationError.setText("Could not save your location.");
+                        locationError.setStyle("-fx-text-fill: #e53935;");
+                    }
+                }
+            }
+
             if (!delete.getText().isBlank()) {
                 String enteredText = delete.getText();
                 if (deleteString.equals(enteredText)) {
@@ -184,6 +213,12 @@ public class ProfileSettingsPage {
                 Ui.light("Email address", 11), email, emailError,
                 Ui.light("Password", 11), pw, pwError,
                 Ui.light("Roles", 11), roleBox, placeholder,
+                Ui.light("Location", 11),
+                Ui.light("City", 11), city,
+                Ui.light("Postal Code", 11), postalCode,
+                Ui.light("District", 11), district,
+                Ui.light("Street Address", 11), streetAddress,
+                Ui.light("Country", 11), country, locationError,
                 Ui.light("Delete account", 11), deleteInfo, delete, deleteError,
                 save);
         settings.setStyle("-fx-background-color: white;");

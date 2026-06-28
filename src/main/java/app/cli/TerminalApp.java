@@ -780,6 +780,31 @@ public class TerminalApp {
             return;
         }
 
+        // First booking: capture the renter's location once and save it to their profile.
+        if (!userService.hasLocation(myId)) {
+            System.out.println("we need your location for this first booking:");
+            System.out.print("City: ");
+            String city = scanner.nextLine().trim();
+            System.out.print("Postal code: ");
+            String postalCode = scanner.nextLine().trim();
+            System.out.print("District (blank = none): ");
+            String district = scanner.nextLine().trim();
+            if (district.isEmpty()) district = null;
+            System.out.print("Street address: ");
+            String streetAddress = scanner.nextLine().trim();
+            System.out.print("Country: ");
+            String country = scanner.nextLine().trim();
+
+            Location loc = new Location(city, postalCode, district, streetAddress, country);
+            if (userService.updateLocation(myId, loc)) {
+                System.out.println("location saved to your profile");
+                Logger.info("user location set on first booking: user=" + myId);
+            } else {
+                System.out.println("could not save location");
+                return;
+            }
+        }
+
         LocalDateTime start = promptDate("Start date (yyyy-MM-dd): ");
         if (start == null) return;
         LocalDateTime end = promptDate("End date (yyyy-MM-dd): ");

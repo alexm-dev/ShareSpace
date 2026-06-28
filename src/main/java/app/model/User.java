@@ -12,6 +12,7 @@ public class User {
     private String passwordHash;
     private LocalDateTime createdTime;
     private String status;
+    private Integer locationId;
 
     /**
      * Constructor to load from the DB.
@@ -41,6 +42,7 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public LocalDateTime getCreatedTime() { return createdTime; }
     public String getStatus() { return status; }
+    public Integer getLocationId() { return locationId; }
 
     // Setters
     public void setId(int id) { this.id = id; }
@@ -48,4 +50,5 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public void setStatus(String status) { this.status = status; }
+    public void setLocationId(Integer locationId) { this.locationId = locationId; }
 }

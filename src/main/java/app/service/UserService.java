@@ -3,9 +3,11 @@ package app.service;
 import app.dao.UserDAO;
 import app.dao.UserRoleDAO;
 import app.dao.RoleDAO;
+import app.dao.LocationDAO;
 import app.model.User;
 import app.model.UserRole;
 import app.model.Role;
+import app.model.Location;
 import app.util.AuthUtil;
 
 import java.util.List;
@@ -20,11 +22,13 @@ public class UserService {
     private final UserDAO userDAO;
     private final UserRoleDAO userRoleDAO;
     private final RoleDAO roleDAO;
+    private final LocationDAO locationDAO;
 
     public UserService() {
         this.userDAO = new UserDAO();
         this.userRoleDAO = new UserRoleDAO();
         this.roleDAO = new RoleDAO();
+        this.locationDAO = new LocationDAO();
     }
 
     /**
@@ -162,6 +166,55 @@ public class UserService {
         }
 
         user.setPasswordHash(AuthUtil.hashPassword(plainPassword));
+        return userDAO.update(user);
+    }
+
+    /**
+     * Returns the users saved location, if any.
+     *
+     * @param userId the user id
+     * @return the Location, or null if the user has no location or does not exist
+     */
+    public Location getLocation(int userId) {
+        User user = userDAO.findById(userId);
+        if (user == null || user.getLocationId() == null) {
+            return null;
+        }
+        return locationDAO.findById(user.getLocationId());
+    }
+
+    /**
+     * Checks if a user has a location set.
+     *
+     * @param userId the user id
+     * @return true if the user has a location set
+     */
+    public boolean hasLocation(int userId) {
+        User user = userDAO.findById(userId);
+        return user != null && user.getLocationId() != null;
+    }
+
+    /**
+     * Updates the users location.
+     *
+     * @param userId the user id
+     * @param location the location to save
+     * @return true if the user's location was updated, false if the user was not found
+     */
+    public boolean updateLocation(int userId, Location location) {
+        User user = userDAO.findById(userId);
+        if (user == null) {
+            return false;
+        }
+
+        Location existing = locationDAO.findMatch(location);
+        if (existing != null) {
+            location = existing;
+        } else if (!locationDAO.create(location)) {
+            return false;
+        }
+
+        user.setLocationId(location.getId());
         return userDAO.update(user);
     }
 

@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     email         TEXT    NOT NULL UNIQUE,
     password_hash TEXT    NOT NULL,
     created_time  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status        TEXT
+    status        TEXT,
+    location_id   INTEGER REFERENCES locations(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS roles (
