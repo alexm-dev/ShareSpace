@@ -24,7 +24,8 @@ public class CatalogPage {
 
         List<Category> cats = ShareS.catalogService.getAllCategories();
         Node[] tiles = cats.stream()
-                .map(c -> (Node) Ui.tile(c.getName().toUpperCase(), c.getDescription(), 0.48))
+                .map(c -> (Node) Ui.tile(c.getName().toUpperCase(), c.getDescription(), 0.48,
+                        () -> ShareS.showCategoryPage(c)))
                 .toArray(Node[]::new);
         GridPane grid = Ui.grid(3, 16, tiles);
 

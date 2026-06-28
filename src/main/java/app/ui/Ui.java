@@ -3,9 +3,12 @@ package app.ui;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -93,6 +96,62 @@ public final class Ui {
 
         VBox box = new VBox(6, head, image(aspectRatio));
         box.setMaxWidth(Double.MAX_VALUE);
+        return box;
+    }
+
+    static VBox tile(String name, String price, double aspectRatio, Runnable onClick) {
+        VBox box = tile(name, price, aspectRatio);
+        if (onClick != null) {
+            box.setStyle("-fx-cursor: hand;");
+            box.setOnMouseClicked(e -> onClick.run());
+        }
+        return box;
+    }
+
+    static VBox ownerTile(String name, String price, double aspectRatio,
+                          Runnable onEdit, Runnable onDelete) {
+        HBox head = new HBox(6, bold(name, 13), light(price, 11));
+        head.setAlignment(Pos.BOTTOM_LEFT);
+
+        Button kebab = new Button("⋯");
+        kebab.setStyle("-fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 12;"
+                + " -fx-font-weight: bold; -fx-font-size: 16px; -fx-cursor: hand; -fx-padding: 0 8 4 8;");
+        ContextMenu menu = new ContextMenu();
+        if (onEdit != null) {
+            MenuItem edit = new MenuItem("Edit");
+            edit.setOnAction(e -> onEdit.run());
+            menu.getItems().add(edit);
+        }
+        if (onDelete != null) {
+            MenuItem delete = new MenuItem("Delete");
+            delete.setOnAction(e -> onDelete.run());
+            menu.getItems().add(delete);
+        }
+        kebab.setOnAction(e -> menu.show(kebab, Side.BOTTOM, 0, 0));
+
+        StackPane imageStack = new StackPane(image(aspectRatio), kebab);
+        StackPane.setAlignment(kebab, Pos.TOP_RIGHT);
+        StackPane.setMargin(kebab, new Insets(8));
+
+        VBox box = new VBox(6, head, imageStack);
+        box.setMaxWidth(Double.MAX_VALUE);
+        return box;
+    }
+
+    static VBox addTile(String name, double aspectRatio, Runnable onClick) {
+        HBox head = new HBox(6, bold(name, 13));
+        head.setAlignment(Pos.BOTTOM_LEFT);
+
+        Label plus = new Label("+");
+        plus.setStyle("-fx-font-size: 64px; -fx-font-weight: bold; -fx-text-fill: #9e9e9e;");
+        StackPane imageStack = new StackPane(image(aspectRatio), plus);
+
+        VBox box = new VBox(6, head, imageStack);
+        box.setMaxWidth(Double.MAX_VALUE);
+        if (onClick != null) {
+            box.setStyle("-fx-cursor: hand;");
+            box.setOnMouseClicked(e -> onClick.run());
+        }
         return box;
     }
 

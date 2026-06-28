@@ -1,6 +1,9 @@
 package app.ui;
 
 import app.database.Database;
+import app.model.Asset;
+import app.model.Category;
+import app.model.SubCategory;
 import app.service.AssetService;
 import app.service.BookingService;
 import app.service.CatalogService;
@@ -56,6 +59,12 @@ public class ShareS extends Application {
     public static void showRegistrationPage() { showPage(new RegistrationPage().build(), true); }
     public static void showProfileSettingsPage() { showPage2(new ProfileSettingsPage().build(), true); }
     public static void showAboutPage() { showPage2(new AboutPage().build(), false); }
+
+    public static void showCategoryPage(Category category) { showPage(new CategoryPage(category).build(), false); }
+    public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build(), false); }
+    public static void showBookingFlowPage(Asset asset) { showPage(new BookingFlowPage(asset).build(), false); }
+    public static void showCreateListingPage() { showPage(new CreateListingPage(null).build(), false); }
+    public static void showEditListingPage(Asset asset) { showPage(new CreateListingPage(asset).build(), false); }
 
     private static void showPage(VBox root, boolean fitHeight) {
         ScrollPane scrollPane = new ScrollPane(root);

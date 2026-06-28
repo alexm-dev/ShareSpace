@@ -6,7 +6,11 @@ import app.model.User;
 import app.model.enums.BookingStatus;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -16,6 +20,7 @@ import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BookingPage {
 
@@ -37,7 +42,57 @@ public class BookingPage {
                 Ui.bold("BOOKINGS", 28), Ui.spacer(), Ui.light("MY RENTALS", 11));
         title.setAlignment(Pos.BOTTOM_LEFT);
 
-        return Ui.page(header, title, buildTable(), Ui.footer());
+        List<Node> children = new ArrayList<>();
+        children.add(header);
+        children.add(title);
+
+        User activeUser = ShareS.session.getActiveUser();
+        if (activeUser != null && ShareS.userService.hasRole(activeUser.getId(), "lender")) {
+            children.add(buildListingsSection(activeUser));
+        }
+
+        children.add(Ui.light("INCOMING BOOKINGS", 11));
+        children.add(buildTable());
+        children.add(Ui.footer());
+
+        return Ui.page(children.toArray(new Node[0]));
+    }
+
+    private VBox buildListingsSection(User user) {
+        List<Asset> mine = ShareS.assetService.findByOwner(user.getId());
+        List<Node> tiles = new ArrayList<>();
+        tiles.add(Ui.addTile("NEW LISTING", 0.55, ShareS::showCreateListingPage));
+        for (Asset a : mine) {
+            tiles.add(Ui.ownerTile(
+                    a.getModel().toUpperCase(),
+                    "€" + String.format("%.0f", a.getDailyRate()) + "/DAY",
+                    0.55,
+                    () -> ShareS.showEditListingPage(a),
+                    () -> confirmDelete(a)));
+        }
+
+        GridPane grid = Ui.grid(3, 16, tiles.toArray(new Node[0]));
+        return new VBox(16, Ui.light("MY LISTINGS", 11), grid);
+    }
+
+    private void confirmDelete(Asset asset) {
+        ButtonType deleteButton = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "Delete listing \"" + asset.getModel() + "\"?", deleteButton, cancelButton);
+        alert.setTitle("Delete listing");
+        alert.setHeaderText("Warning");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == deleteButton) {
+            try {
+                ShareS.assetService.deleteAsset(asset.getId(), ShareS.session.getActiveUser().getId());
+            } catch (RuntimeException ex) {
+                new Alert(Alert.AlertType.ERROR,
+                        "Could not delete this listing. It may have active bookings.").showAndWait();
+            }
+            ShareS.showBookingPage();
+        }
     }
 
     private GridPane buildTable() {
