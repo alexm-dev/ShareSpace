@@ -85,14 +85,19 @@ public class ProfileSettingsPage {
         Location currentLocation = ShareS.userService.getLocation(user.getId());
         TextField city = new TextField();
         city.setPromptText("city");
+        city.setMaxWidth(300);
         TextField postalCode = new TextField();
         postalCode.setPromptText("postalCode");
+        postalCode.setMaxWidth(300);
         TextField district = new TextField();
         district.setPromptText("district");
+        district.setMaxWidth(300);
         TextField streetAddress = new TextField();
         streetAddress.setPromptText("streetAddress");
+        streetAddress.setMaxWidth(300);
         TextField country = new TextField();
         country.setPromptText("country");
+        country.setMaxWidth(300);
         Label locationError = Ui.light("", 12);
 
         //prefill with the user's saved location if they already have one
