@@ -46,6 +46,8 @@ public class ShareS extends Application {
         stage.setTitle("ShareSpace");
         stage.setWidth(1200);
         stage.setHeight(800);
+        stage.setMinWidth(1100);
+        stage.setMinHeight(640);
         stage.setMaximized(false);
 
         showStartPage();
@@ -63,6 +65,7 @@ public class ShareS extends Application {
 
     public static void showCategoryPage(Category category) { showPage(new CategoryPage(category).build(), false); }
     public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build(), false); }
+    public static void showListingDetailPage(Asset asset) { showPage(new ListingDetailPage(asset).build(), false); }
     public static void showBookingFlowPage(Asset asset) { showPage(new BookingFlowPage(asset).build(), false); }
     public static void showCreateListingPage() { showPage(new CreateListingPage(null).build(), false); }
     public static void showEditListingPage(Asset asset) { showPage(new CreateListingPage(asset).build(), false); }
@@ -70,7 +73,7 @@ public class ShareS extends Application {
     private static void showPage(VBox root, boolean fitHeight) {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(fitHeight);
+        scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
@@ -82,7 +85,7 @@ public class ShareS extends Application {
     private static void showPage2(StackPane root, boolean fitHeight) {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(fitHeight);
+        scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 

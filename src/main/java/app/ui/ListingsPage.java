@@ -44,7 +44,8 @@ public class ListingsPage {
                         a.getModel().toUpperCase(),
                         "€" + String.format("%.0f", a.getDailyRate()) + "/DAY",
                         0.55,
-                        () -> ShareS.showBookingFlowPage(a)))
+                        ShareS.assetService.getImage(a.getId()),
+                        () -> ShareS.showListingDetailPage(a)))
                 .toArray(Node[]::new);
         GridPane grid = Ui.grid(3, 16, tiles);
 

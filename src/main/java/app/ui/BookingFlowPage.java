@@ -11,6 +11,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
@@ -62,7 +63,7 @@ public class BookingFlowPage {
             summary.getChildren().add(Ui.light("Condition: " + asset.getCondition(), 11));
         }
         if (loc != null) {
-            summary.getChildren().add(Ui.light(formatLocation(loc), 11));
+            summary.getChildren().add(Ui.light(Ui.formatLocation(loc), 11));
         }
         if (asset.getDescription() != null && !asset.getDescription().isBlank()) {
             summary.getChildren().add(Ui.light(asset.getDescription(), 11));
@@ -97,7 +98,16 @@ public class BookingFlowPage {
         start.valueProperty().addListener((o, a, b) -> recompute.run());
         end.valueProperty().addListener((o, a, b) -> recompute.run());
 
+        boolean needsName = !ShareS.userService.hasName(me.getId());
         boolean needsLocation = !ShareS.userService.hasLocation(me.getId());
+
+        TextField firstName = new TextField();
+        firstName.setPromptText("first name");
+        firstName.setMaxWidth(300);
+        TextField lastName = new TextField();
+        lastName.setPromptText("last name");
+        lastName.setMaxWidth(300);
+
         TextField city = new TextField();
         city.setPromptText("city");
         city.setMaxWidth(300);
@@ -114,13 +124,23 @@ public class BookingFlowPage {
         country.setPromptText("country");
         country.setMaxWidth(300);
 
-        VBox locationBox = new VBox(10,
-                Ui.light("We need your location for your first booking", 11),
-                Ui.light("City", 11), city,
-                Ui.light("Postal Code", 11), postalCode,
-                Ui.light("District", 11), district,
-                Ui.light("Street Address", 11), streetAddress,
-                Ui.light("Country", 11), country);
+        VBox detailsBox = new VBox(10);
+        if (needsName || needsLocation) {
+            detailsBox.getChildren().add(Ui.light("We need a few details for your first booking", 11));
+        }
+        if (needsName) {
+            detailsBox.getChildren().addAll(
+                    Ui.light("First Name", 11), firstName,
+                    Ui.light("Last Name", 11), lastName);
+        }
+        if (needsLocation) {
+            detailsBox.getChildren().addAll(
+                    Ui.light("City", 11), city,
+                    Ui.light("Postal Code", 11), postalCode,
+                    Ui.light("District", 11), district,
+                    Ui.light("Street Address", 11), streetAddress,
+                    Ui.light("Country", 11), country);
+        }
 
         Button confirm = Ui.button("Confirm booking", 13,
                 "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
@@ -135,6 +155,19 @@ public class BookingFlowPage {
             if (en.isBefore(s)) {
                 showError(error, "End date must be on or after the start date.");
                 return;
+            }
+
+            if (needsName) {
+                String firstText = firstName.getText().trim();
+                String lastText = lastName.getText().trim();
+                if (firstText.isEmpty() || lastText.isEmpty()) {
+                    showError(error, "First and last name are required.");
+                    return;
+                }
+                if (!ShareS.userService.updateName(me.getId(), firstText, lastText)) {
+                    showError(error, "Could not save your name.");
+                    return;
+                }
             }
 
             if (needsLocation) {
@@ -170,29 +203,26 @@ public class BookingFlowPage {
                 Ui.light("Start date", 11), start,
                 Ui.light("End date", 11), end,
                 cost);
-        if (needsLocation) {
-            form.getChildren().add(locationBox);
+        if (needsName || needsLocation) {
+            form.getChildren().add(detailsBox);
         }
         form.getChildren().addAll(error, confirm);
+        form.setMinWidth(320);
+        form.setPrefWidth(320);
 
-        return Ui.page(header, title, form, Ui.footer());
+        VBox pictureBox = new VBox(Ui.image(0.55, ShareS.assetService.getImage(asset.getId())));
+        pictureBox.setMinWidth(0);
+        pictureBox.setMaxWidth(600);
+        HBox.setHgrow(pictureBox, Priority.ALWAYS);
+
+        HBox content = new HBox(48, form, pictureBox);
+        content.setAlignment(Pos.TOP_LEFT);
+
+        return Ui.page(header, title, content, Ui.footer());
     }
 
     private void showError(Label error, String message) {
         error.setText(message);
         error.setStyle("-fx-text-fill: #e53935;");
-    }
-
-    private String formatLocation(Location l) {
-        StringBuilder sb = new StringBuilder();
-        if (l.getStreetAddress() != null && !l.getStreetAddress().isBlank()) {
-            sb.append(l.getStreetAddress()).append(", ");
-        }
-        sb.append(l.getPostalCode()).append(" ").append(l.getCity());
-        if (l.getDistrict() != null && !l.getDistrict().isBlank()) {
-            sb.append(" (").append(l.getDistrict()).append(")");
-        }
-        sb.append(", ").append(l.getCountry());
-        return sb.toString();
     }
 }

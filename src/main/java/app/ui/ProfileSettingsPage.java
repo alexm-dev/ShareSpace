@@ -6,6 +6,7 @@ import app.model.User;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -41,6 +42,17 @@ public class ProfileSettingsPage {
         pw.setPromptText("New password");
         pw.setMaxWidth(300);
         Label pwError = Ui.light("", 12);
+
+        //real name (kept private, shown only inside a booking between two users)
+        TextField firstName = new TextField();
+        firstName.setPromptText("first name");
+        firstName.setMaxWidth(300);
+        TextField lastName = new TextField();
+        lastName.setPromptText("last name");
+        lastName.setMaxWidth(300);
+        if (user.getFirstName() != null) firstName.setText(user.getFirstName());
+        if (user.getLastName() != null) lastName.setText(user.getLastName());
+        Label nameError = Ui.light("", 12);
 
 
         //role management
@@ -167,6 +179,21 @@ public class ProfileSettingsPage {
                 }
             }
 
+            String firstText = firstName.getText().trim();
+            String lastText = lastName.getText().trim();
+            if (!firstText.isEmpty() || !lastText.isEmpty()) {
+                if (firstText.isEmpty() || lastText.isEmpty()) {
+                    nameError.setText("Please fill in both first and last name.");
+                    nameError.setStyle("-fx-text-fill: #e53935;");
+                } else if (ShareS.userService.updateName(user.getId(), firstText, lastText)) {
+                    nameError.setText("Your name has been saved.");
+                    nameError.setStyle("-fx-text-fill: green;");
+                } else {
+                    nameError.setText("Could not save your name.");
+                    nameError.setStyle("-fx-text-fill: #e53935;");
+                }
+            }
+
             String cityText = city.getText().trim();
             String postalText = postalCode.getText().trim();
             String districtText = district.getText().trim();
@@ -217,6 +244,8 @@ public class ProfileSettingsPage {
                 Ui.light("Username", 11), username, usernameError,
                 Ui.light("Email address", 11), email, emailError,
                 Ui.light("Password", 11), pw, pwError,
+                Ui.light("First Name", 11), firstName,
+                Ui.light("Last Name", 11), lastName, nameError,
                 Ui.light("Roles", 11), roleBox, placeholder,
                 Ui.light("Location", 11),
                 Ui.light("City", 11), city,
@@ -227,7 +256,11 @@ public class ProfileSettingsPage {
                 Ui.light("Delete account", 11), deleteInfo, delete, deleteError,
                 save);
         settings.setStyle("-fx-background-color: white;");
+        settings.setMaxWidth(Region.USE_PREF_SIZE);
 
-        return Ui.buildPage(title, settings);
+        HBox settingsWrap = new HBox(settings);
+        settingsWrap.setAlignment(Pos.CENTER);
+
+        return Ui.buildPage(title, settingsWrap);
     }
 }

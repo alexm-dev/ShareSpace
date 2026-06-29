@@ -1,5 +1,6 @@
 package app.ui;
 
+import app.model.Location;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,7 +10,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,8 +26,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
+
+import java.io.ByteArrayInputStream;
 
 public final class Ui {
 
@@ -33,8 +45,12 @@ public final class Ui {
         return l;
     }
 
+    // bold labels hold short single-line text (names, titles, the logo); keep
     static Label bold(String text, int sizePx) {
-        return label(text, sizePx, "-fx-font-weight: bold;");
+        Label l = label(text, sizePx, "-fx-font-weight: bold;");
+        l.setWrapText(false);
+        l.setTextOverrun(OverrunStyle.ELLIPSIS);
+        return l;
     }
 
     static Label light(String text, int sizePx) {
@@ -48,6 +64,113 @@ public final class Ui {
         r.setMinHeight(Region.USE_PREF_SIZE);
         r.prefHeightProperty().bind(r.widthProperty().multiply(aspectRatio));
         return r;
+    }
+
+    static Region image(double aspectRatio, byte[] data) {
+        Image img = (data == null || data.length == 0) ? null : new Image(new ByteArrayInputStream(data));
+        if (img == null || img.isError() || img.getWidth() == 0 || img.getHeight() == 0) {
+            return image(aspectRatio);
+        }
+
+        Region r = new Region();
+        r.setMaxWidth(Double.MAX_VALUE);
+        r.setMinHeight(Region.USE_PREF_SIZE);
+        r.prefHeightProperty().bind(r.widthProperty().multiply(aspectRatio));
+        r.setBackground(new Background(coverBackground(img)));
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(r.widthProperty());
+        clip.heightProperty().bind(r.heightProperty());
+        clip.setArcWidth(16);
+        clip.setArcHeight(16);
+        r.setClip(clip);
+        return r;
+    }
+
+    /** A BackgroundImage that scales an image to cover its region, centred. */
+    private static BackgroundImage coverBackground(Image img) {
+        BackgroundSize cover = new BackgroundSize(
+                BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true);
+        return new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER, cover);
+    }
+
+    /**
+     * Fixed image box with a given width and height, showing an image if data is present,
+     */
+    static Region imageBox(double width, double height, byte[] data) {
+        Region r = new Region();
+        r.setMinSize(width, height);
+        r.setPrefSize(width, height);
+        r.setMaxSize(width, height);
+
+        Image img = (data == null || data.length == 0) ? null : new Image(new ByteArrayInputStream(data));
+        if (img != null && !img.isError() && img.getWidth() > 0 && img.getHeight() > 0) {
+            r.setBackground(new Background(coverBackground(img)));
+        } else {
+            r.setStyle("-fx-background-color: #d9d9d9; -fx-background-radius: 8;");
+        }
+
+        Rectangle clip = new Rectangle(width, height);
+        clip.setArcWidth(16);
+        clip.setArcHeight(16);
+        r.setClip(clip);
+        return r;
+    }
+
+    static Region avatar(double diameter, byte[] data, Runnable onClick) {
+        StackPane pane = new StackPane();
+        pane.setMinSize(diameter, diameter);
+        pane.setPrefSize(diameter, diameter);
+        pane.setMaxSize(diameter, diameter);
+
+        Image img = (data == null || data.length == 0) ? null : new Image(new ByteArrayInputStream(data));
+        if (img != null && !img.isError() && img.getWidth() > 0 && img.getHeight() > 0) {
+            pane.setBackground(new Background(coverBackground(img)));
+        } else {
+            pane.setStyle("-fx-background-color: #d9d9d9;");
+            Label glyph = new Label("+");
+            glyph.setStyle("-fx-font-size: " + (diameter * 0.4) + "px; -fx-text-fill: #9e9e9e;");
+            pane.getChildren().add(glyph);
+        }
+
+        pane.setClip(new Circle(diameter / 2, diameter / 2, diameter / 2));
+        if (onClick != null) {
+            pane.setCursor(javafx.scene.Cursor.HAND);
+            pane.setOnMouseClicked(e -> onClick.run());
+        }
+        return pane;
+    }
+
+    /**
+     * Pops up a small menu under an image area to choose, change or remove its
+     * image. The remove entry only appears when there is an image to remove.
+     */
+    static void showImageMenu(Node anchor, boolean hasImage, Runnable onChoose, Runnable onRemove) {
+        ContextMenu menu = new ContextMenu();
+        MenuItem choose = new MenuItem(hasImage ? "Change image…" : "Choose image…");
+        choose.setOnAction(e -> onChoose.run());
+        menu.getItems().add(choose);
+        if (hasImage && onRemove != null) {
+            MenuItem remove = new MenuItem("Remove image");
+            remove.setOnAction(e -> onRemove.run());
+            menu.getItems().add(remove);
+        }
+        menu.show(anchor, Side.BOTTOM, 0, 0);
+    }
+
+    /** One-line human-readable address, in the shape the listing pages display. */
+    static String formatLocation(Location l) {
+        StringBuilder sb = new StringBuilder();
+        if (l.getStreetAddress() != null && !l.getStreetAddress().isBlank()) {
+            sb.append(l.getStreetAddress()).append(", ");
+        }
+        sb.append(l.getPostalCode()).append(" ").append(l.getCity());
+        if (l.getDistrict() != null && !l.getDistrict().isBlank()) {
+            sb.append(" (").append(l.getDistrict()).append(")");
+        }
+        sb.append(", ").append(l.getCountry());
+        return sb.toString();
     }
 
     static Region box(int heightPx, String style) {
@@ -99,16 +222,19 @@ public final class Ui {
     }
 
     static VBox tile(String name, String price, double aspectRatio) {
-        HBox head = new HBox(6, bold(name, 13), light(price, 11));
-        head.setAlignment(Pos.BOTTOM_LEFT);
-
-        VBox box = new VBox(6, head, image(aspectRatio));
-        box.setMaxWidth(Double.MAX_VALUE);
-        return box;
+        return tile(name, price, aspectRatio, null, null);
     }
 
     static VBox tile(String name, String price, double aspectRatio, Runnable onClick) {
-        VBox box = tile(name, price, aspectRatio);
+        return tile(name, price, aspectRatio, null, onClick);
+    }
+
+    static VBox tile(String name, String price, double aspectRatio, byte[] imageData, Runnable onClick) {
+        HBox head = new HBox(6, bold(name, 13), light(price, 11));
+        head.setAlignment(Pos.BOTTOM_LEFT);
+
+        VBox box = new VBox(6, head, image(aspectRatio, imageData));
+        box.setMaxWidth(Double.MAX_VALUE);
         if (onClick != null) {
             box.setStyle("-fx-cursor: hand;");
             box.setOnMouseClicked(e -> onClick.run());
@@ -116,8 +242,8 @@ public final class Ui {
         return box;
     }
 
-    static VBox ownerTile(String name, String price, double aspectRatio,
-            Runnable onEdit, Runnable onDelete) {
+    static VBox ownerTile(String name, String price, double aspectRatio, byte[] imageData,
+            String lockedNote, Runnable onOpen, Runnable onEdit, Runnable onDelete) {
         HBox head = new HBox(6, bold(name, 13), light(price, 11));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
@@ -125,24 +251,35 @@ public final class Ui {
         kebab.setStyle("-fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 12;"
                 + " -fx-font-weight: bold; -fx-font-size: 16px; -fx-cursor: hand; -fx-padding: 0 8 4 8;");
         ContextMenu menu = new ContextMenu();
-        if (onEdit != null) {
-            MenuItem edit = new MenuItem("Edit");
-            edit.setOnAction(e -> onEdit.run());
-            menu.getItems().add(edit);
-        }
-        if (onDelete != null) {
-            MenuItem delete = new MenuItem("Delete");
-            delete.setOnAction(e -> onDelete.run());
-            menu.getItems().add(delete);
+        if (lockedNote != null) {
+            // a listing with active bookings can't be edited or deleted; show why
+            MenuItem locked = new MenuItem(lockedNote);
+            locked.setDisable(true);
+            menu.getItems().add(locked);
+        } else {
+            if (onEdit != null) {
+                MenuItem edit = new MenuItem("Edit");
+                edit.setOnAction(e -> onEdit.run());
+                menu.getItems().add(edit);
+            }
+            if (onDelete != null) {
+                MenuItem delete = new MenuItem("Delete");
+                delete.setOnAction(e -> onDelete.run());
+                menu.getItems().add(delete);
+            }
         }
         kebab.setOnAction(e -> menu.show(kebab, Side.BOTTOM, 0, 0));
 
-        StackPane imageStack = new StackPane(image(aspectRatio), kebab);
+        StackPane imageStack = new StackPane(image(aspectRatio, imageData), kebab);
         StackPane.setAlignment(kebab, Pos.TOP_RIGHT);
         StackPane.setMargin(kebab, new Insets(8));
 
         VBox box = new VBox(6, head, imageStack);
         box.setMaxWidth(Double.MAX_VALUE);
+        if (onOpen != null) {
+            box.setStyle("-fx-cursor: hand;");
+            box.setOnMouseClicked(e -> onOpen.run());
+        }
         return box;
     }
 
@@ -221,7 +358,18 @@ public final class Ui {
     }
 
     static VBox page(Node... children) {
-        VBox root = new VBox(40, children);
+        // push the footer (always the last child) to the bottom of the viewport
+        Node[] laidOut = children;
+        if (children.length > 1) {
+            Region grow = new Region();
+            VBox.setVgrow(grow, Priority.ALWAYS);
+            laidOut = new Node[children.length + 1];
+            System.arraycopy(children, 0, laidOut, 0, children.length - 1);
+            laidOut[children.length - 1] = grow;
+            laidOut[children.length] = children[children.length - 1];
+        }
+
+        VBox root = new VBox(40, laidOut);
         root.setFillWidth(true);
         root.setPadding(new Insets(0, 60, 40, 60));
         root.setStyle("-fx-background-color: white;");
@@ -335,11 +483,14 @@ public final class Ui {
         heading.setPadding(new Insets(16, 0, 16, 0));
         heading.setStyle("-fx-border-color: transparent transparent #e5e5e5 transparent; -fx-border-width: 0 0 1 0;");
 
-        // combining children(content) with heading and footer
+        Region grow = new Region();
+        VBox.setVgrow(grow, Priority.ALWAYS);
+
         VBox mainPage = new VBox();
         mainPage.setSpacing(40);
         mainPage.getChildren().add(heading);
         mainPage.getChildren().addAll(children);
+        mainPage.getChildren().add(grow);
         mainPage.getChildren().add(footer());
         mainPage.setFillWidth(true);
         mainPage.setPadding(new Insets(0, 60, 40, 60));

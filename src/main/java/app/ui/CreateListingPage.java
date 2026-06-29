@@ -12,11 +12,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -61,6 +67,14 @@ public class CreateListingPage {
             return Ui.page(header, title,
                     Ui.light("You need the lender role to create listings. Add it in settings.", 13),
                     settings, Ui.footer());
+        }
+
+        if (isEdit && ShareS.assetService.hasActiveBookings(editing.getId())) {
+            Button back = Ui.button("Back to profile", 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+            back.setOnAction(e -> ShareS.showProfilePage());
+            return Ui.page(header, title,
+                    Ui.light("This listing has active bookings and can't be edited.", 13),
+                    back, Ui.footer());
         }
 
         ComboBox<Category> categoryBox = new ComboBox<>();
@@ -146,6 +160,60 @@ public class CreateListingPage {
 
         Label error = Ui.light("", 12);
 
+        final byte[][] imageData = { isEdit ? ShareS.assetService.getImage(editing.getId()) : null };
+        final String[] imageMime = { null };
+        final boolean[] imageDirty = { false };
+
+        StackPane preview = new StackPane();
+        preview.setMaxWidth(300);
+        preview.setStyle("-fx-cursor: hand;");
+        Label addPhoto = Ui.light("Click to add a photo", 12);
+        Runnable renderPreview = () -> {
+            preview.getChildren().setAll(Ui.imageBox(300, 165, imageData[0]));
+            if (imageData[0] == null) {
+                preview.getChildren().add(addPhoto);
+            }
+        };
+        renderPreview.run();
+        Runnable chooseImage = () -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Choose an image");
+            chooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+            File file = chooser.showOpenDialog(ShareS.primaryStage);
+            if (file == null) {
+                return;
+            }
+            try {
+                byte[] cropped = CropDialog.crop(Files.readAllBytes(file.toPath()), 0.55);
+                if (cropped == null) {
+                    return;
+                }
+                imageData[0] = cropped;
+                imageMime[0] = "image/jpeg";
+                imageDirty[0] = true;
+                renderPreview.run();
+            } catch (IOException ex) {
+                showError(error, "Could not read that image file.");
+            }
+        };
+        Runnable removeImage = () -> {
+            imageData[0] = null;
+            imageMime[0] = null;
+            imageDirty[0] = true;
+            renderPreview.run();
+        };
+        preview.setOnMouseClicked(ev -> {
+            if (ev.getButton() == MouseButton.PRIMARY) {
+                chooseImage.run();
+            }
+        });
+        preview.setOnContextMenuRequested(ev -> {
+            if (imageData[0] != null) {
+                Ui.showImageMenu(preview, true, chooseImage, removeImage);
+            }
+        });
+
         if (isEdit) {
             SubCategory sub = ShareS.catalogService.getSubCategoryById(editing.getSubCategoryId());
             if (sub != null) {
@@ -208,6 +276,13 @@ public class CreateListingPage {
                 editing.setDailyRate(rate);
                 editing.setMetadata(metadata);
                 if (ShareS.assetService.updateAsset(editing, me)) {
+                    if (imageDirty[0]) {
+                        if (imageData[0] != null) {
+                            ShareS.assetService.saveImage(editing.getId(), imageData[0], imageMime[0], me);
+                        } else {
+                            ShareS.assetService.deleteImage(editing.getId(), me);
+                        }
+                    }
                     ShareS.showProfilePage();
                 } else {
                     showError(error, "Could not update the listing.");
@@ -229,7 +304,11 @@ public class CreateListingPage {
             asset.setMetadata(metadata);
             Location loc = new Location(cityText, postalText,
                     districtText.isEmpty() ? null : districtText, streetText, countryText);
-            if (ShareS.assetService.createAsset(asset, loc) != null) {
+            Asset created = ShareS.assetService.createAsset(asset, loc);
+            if (created != null) {
+                if (imageData[0] != null) {
+                    ShareS.assetService.saveImage(created.getId(), imageData[0], imageMime[0], me);
+                }
                 ShareS.showProfilePage();
             } else {
                 showError(error, "Could not create the listing.");
@@ -240,6 +319,7 @@ public class CreateListingPage {
         addDetail.setOnAction(e -> addCustomRow(metadataRows, "", ""));
 
         VBox form = new VBox(12,
+                Ui.light("Photo", 11), preview,
                 Ui.light("Category", 11), categoryBox,
                 Ui.light("Sub-category", 11), subBox,
                 Ui.light("Model", 11), model,
@@ -251,8 +331,12 @@ public class CreateListingPage {
             form.getChildren().add(locationBox);
         }
         form.getChildren().addAll(error, submit);
+        form.setMaxWidth(Region.USE_PREF_SIZE);
 
-        return Ui.page(header, title, form, Ui.footer());
+        HBox formWrap = new HBox(form);
+        formWrap.setAlignment(Pos.CENTER);
+
+        return Ui.page(header, title, formWrap, Ui.footer());
     }
 
     private void addSchemaRow(VBox container, String key, String value) {

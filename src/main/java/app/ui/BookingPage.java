@@ -63,10 +63,15 @@ public class BookingPage {
         List<Node> tiles = new ArrayList<>();
         tiles.add(Ui.addTile("NEW LISTING", 0.55, ShareS::showCreateListingPage));
         for (Asset a : mine) {
+            boolean locked = ShareS.assetService.hasActiveBookings(a.getId());
             tiles.add(Ui.ownerTile(
                     a.getModel().toUpperCase(),
-                    "€" + String.format("%.0f", a.getDailyRate()) + "/DAY",
+                    "€" + String.format("%.0f", a.getDailyRate()) + "/DAY · "
+                            + ShareS.catalogService.getCategoryPath(a.getSubCategoryId()).toUpperCase(),
                     0.55,
+                    ShareS.assetService.getImage(a.getId()),
+                    locked ? "Locked! Has active bookings" : null,
+                    () -> ShareS.showListingDetailPage(a),
                     () -> ShareS.showEditListingPage(a),
                     () -> confirmDelete(a)));
         }
@@ -128,7 +133,13 @@ public class BookingPage {
             User renter = ShareS.userService.findById(booking.getRenterId());
 
             String itemName   = asset  != null ? asset.getModel()    : "#" + booking.getAssetId();
-            String renterName = renter != null ? renter.getUsername() : "#" + booking.getRenterId();
+
+            String renterName;
+            if (renter == null) {
+                renterName = "#" + booking.getRenterId();
+            } else {
+                renterName = renter.getFullName() != null ? renter.getFullName() : renter.getUsername();
+            }
 
             addBookingRow(g, i + 1, booking, itemName, renterName);
         }

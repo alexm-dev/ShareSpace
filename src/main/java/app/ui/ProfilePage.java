@@ -8,11 +8,16 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +43,31 @@ public class ProfilePage {
                 Ui.bold(displayName, 28),
                 Ui.label(stars(avg), 13, "-fx-text-fill: #ffd000;"));
 
-        HBox titleRow = new HBox(16, heading, Ui.spacer(), Ui.light("FOR RENT", 11));
+        Region avatar = Ui.avatar(72,
+                user != null ? ShareS.userService.getProfileImage(user.getId()) : null,
+                user != null ? () -> chooseAvatar(user) : null);
+        if (user != null) {
+            avatar.setOnMouseClicked(e -> {
+                if (e.getButton() == MouseButton.PRIMARY) {
+                    chooseAvatar(user);
+                }
+            });
+            avatar.setOnContextMenuRequested(e -> {
+                if (ShareS.userService.getProfileImage(user.getId()) != null) {
+                    Ui.showImageMenu(avatar, true,
+                            () -> chooseAvatar(user),
+                            () -> {
+                                ShareS.userService.deleteProfileImage(user.getId());
+                                ShareS.showProfilePage();
+                            });
+                }
+            });
+        }
+
+        HBox identity = new HBox(16, avatar, heading);
+        identity.setAlignment(Pos.CENTER_LEFT);
+
+        HBox titleRow = new HBox(16, identity, Ui.spacer(), Ui.light("FOR RENT", 11));
         titleRow.setAlignment(Pos.TOP_LEFT);
 
         List<Asset> assets = user != null
@@ -49,10 +78,15 @@ public class ProfilePage {
             tileList.add(Ui.addTile("NEW LISTING", 0.55, ShareS::showCreateListingPage));
         }
         for (Asset a : assets) {
+            boolean locked = ShareS.assetService.hasActiveBookings(a.getId());
             tileList.add(Ui.ownerTile(
                     a.getModel().toUpperCase(),
-                    "€" + String.format("%.0f", a.getDailyRate()) + "/DAY",
+                    "€" + String.format("%.0f", a.getDailyRate()) + "/DAY · "
+                            + ShareS.catalogService.getCategoryPath(a.getSubCategoryId()).toUpperCase(),
                     0.55,
+                    ShareS.assetService.getImage(a.getId()),
+                    locked ? "Locked! Has active bookings" : null,
+                    () -> ShareS.showListingDetailPage(a),
                     () -> ShareS.showEditListingPage(a),
                     () -> confirmDelete(a)));
         }
@@ -73,6 +107,27 @@ public class ProfilePage {
         ratingSection.setMaxWidth(Double.MAX_VALUE);
 
         return Ui.page(header, titleRow, items, ratingSection, Ui.footer());
+    }
+
+    private void chooseAvatar(User user) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose a profile photo");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+        File file = chooser.showOpenDialog(ShareS.primaryStage);
+        if (file == null) {
+            return;
+        }
+        try {
+            byte[] cropped = CropDialog.crop(Files.readAllBytes(file.toPath()), 1.0);
+            if (cropped == null) {
+                return;
+            }
+            ShareS.userService.saveProfileImage(user.getId(), cropped, "image/jpeg");
+            ShareS.showProfilePage();
+        } catch (IOException ex) {
+            new Alert(Alert.AlertType.ERROR, "Could not read that image file.").showAndWait();
+        }
     }
 
     private void confirmDelete(Asset asset) {
