@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
@@ -32,6 +33,8 @@ import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public final class Ui {
 
@@ -86,12 +89,46 @@ public final class Ui {
         return r;
     }
 
+    private static BackgroundImage backgroundImage(Image img, boolean contain) {
+        BackgroundSize size = new BackgroundSize(
+                BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, contain, !contain);
+        return new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER, size);
+    }
+
     /** A BackgroundImage that scales an image to cover its region, centred. */
     private static BackgroundImage coverBackground(Image img) {
-        BackgroundSize cover = new BackgroundSize(
-                BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true);
-        return new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER, cover);
+        return backgroundImage(img, false);
+    }
+
+    /**
+     * Fit an image to a blurred background of the same image.
+     */
+    static Region fittedImage(double aspectRatio, byte[] data) {
+        Image img = (data == null || data.length == 0) ? null : new Image(new ByteArrayInputStream(data));
+        if (img == null || img.isError() || img.getWidth() == 0 || img.getHeight() == 0) {
+            return image(aspectRatio);
+        }
+
+        Region back = new Region();
+        back.setBackground(new Background(coverBackground(img)));
+        back.setEffect(new GaussianBlur(24));
+
+        Region front = new Region();
+        front.setBackground(new Background(backgroundImage(img, true)));
+
+        StackPane pane = new StackPane(back, front);
+        pane.setMaxWidth(Double.MAX_VALUE);
+        pane.setMinHeight(Region.USE_PREF_SIZE);
+        pane.prefHeightProperty().bind(pane.widthProperty().multiply(aspectRatio));
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(pane.widthProperty());
+        clip.heightProperty().bind(pane.heightProperty());
+        clip.setArcWidth(16);
+        clip.setArcHeight(16);
+        pane.setClip(clip);
+        return pane;
     }
 
     /**
@@ -115,6 +152,30 @@ public final class Ui {
         clip.setArcHeight(16);
         r.setClip(clip);
         return r;
+    }
+
+    private static String slug(String name) {
+        return name.toLowerCase().replaceAll("[^a-z0-9]+", "");
+    }
+
+    /** Reads a bundled classpath resource into bytes, or null if it isn't there. */
+    static byte[] resourceBytes(String path) {
+        try (InputStream in = Ui.class.getResourceAsStream(path)) {
+            return in == null ? null : in.readAllBytes();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** Cover photo bundled for a category, or null if none ships for it. */
+    static byte[] categoryImage(String categoryName) {
+        return resourceBytes("/images/categories/" + slug(categoryName) + "/cover.jpg");
+    }
+
+    /** Cover photo bundled for a subcategory */
+    static byte[] subCategoryImage(String categoryName, String subCategoryName) {
+        return resourceBytes(
+                "/images/categories/" + slug(categoryName) + "/" + slug(subCategoryName) + ".jpg");
     }
 
     static Region avatar(double diameter, byte[] data, Runnable onClick) {
@@ -232,7 +293,7 @@ public final class Ui {
         HBox head = new HBox(6, bold(name, 13), light(price, 11));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
-        VBox box = new VBox(6, head, image(aspectRatio, imageData));
+        VBox box = new VBox(6, head, fittedImage(aspectRatio, imageData));
         box.setMaxWidth(Double.MAX_VALUE);
         if (onClick != null) {
             box.setStyle("-fx-cursor: hand;");
@@ -269,7 +330,7 @@ public final class Ui {
         }
         kebab.setOnAction(e -> menu.show(kebab, Side.BOTTOM, 0, 0));
 
-        StackPane imageStack = new StackPane(image(aspectRatio, imageData), kebab);
+        StackPane imageStack = new StackPane(fittedImage(aspectRatio, imageData), kebab);
         StackPane.setAlignment(kebab, Pos.TOP_RIGHT);
         StackPane.setMargin(kebab, new Insets(8));
 

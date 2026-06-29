@@ -1,7 +1,12 @@
 package app.ui;
 
+import app.model.Category;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.layout.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShareSpacePage {
 
@@ -16,10 +21,7 @@ public class ShareSpacePage {
         who.setAlignment(Pos.CENTER);
         who.setMaxWidth(Double.MAX_VALUE);
 
-        HBox strip = new HBox(12,
-                Ui.image(3), Ui.image(3), Ui.image(3), Ui.image(3), Ui.image(3));
-        strip.setMaxWidth(Double.MAX_VALUE);
-        for (var n : strip.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        VBox strip = featuredCategories("Electronics", "Gaming", "Outdoor", "Music", "Fashion");
 
         VBox what = new VBox(8,
                 Ui.bold("WHAT WE DO", 28),
@@ -40,6 +42,23 @@ public class ShareSpacePage {
         work.setAlignment(Pos.CENTER);
 
         return Ui.buildPage(banner, who, strip, what, steps, slash, work);
+    }
+
+    private VBox featuredCategories(String... names) {
+        List<Category> all = ShareS.catalogService.getAllCategories();
+        List<Node> cards = new ArrayList<>();
+        for (String name : names) {
+            all.stream()
+                    .filter(c -> c.getName().equalsIgnoreCase(name))
+                    .findFirst()
+                    .ifPresent(c -> cards.add(Ui.tile(c.getName().toUpperCase(), "", 1.0,
+                            Ui.categoryImage(c.getName()), () -> ShareS.showCategoryPage(c))));
+        }
+        GridPane grid = Ui.grid(Math.max(1, cards.size()), 12, cards.toArray(new Node[0]));
+
+        VBox box = new VBox(16, Ui.light("POPULAR CATEGORIES", 11), grid);
+        box.setMaxWidth(Double.MAX_VALUE);
+        return box;
     }
 
     private VBox step(String number, String title, String desc) {
