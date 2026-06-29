@@ -12,15 +12,8 @@ import java.sql.SQLException;
  */
 public class Database {
 
-    // TOOD: either v1 or v2 for DB location, v1 is simpler but v2 is more deployment friendly.
-    // If decided, uncomment v1 and comment out v2 and vice versa.
-
-    // v1 relative path (dev/submission, run from project root)
+    // relative path (dev/submission, run from project root)
     private static final String URL = "jdbc:sqlite:database/sharespace.db";
-
-    // v2 persistent user data directory
-    // private static final String DB_DIR = System.getProperty("user.home") + java.io.File.separator + "ShareSpace";
-    // private static final String URL = "jdbc:sqlite:" + DB_DIR + java.io.File.separator + "sharespace.db";
 
     private static Connection connection;
 
@@ -38,10 +31,8 @@ public class Database {
      */
     public static Connection getConnection() {
         if (connection == null) {
-            // v1 ensure the database/ directory exists before SQLite tries to create the file
+            // ensure the database/ directory exists before SQLite tries to create the file
             new java.io.File("database").mkdirs();
-            // v2 create the directory before connecting (only needed with user.home path)
-            // new java.io.File(DB_DIR).mkdirs();
             try {
                 connection = DriverManager.getConnection(URL);
                 connection.createStatement().execute("PRAGMA foreign_keys = ON");
