@@ -40,7 +40,7 @@ WITH v(name, category_name) AS (
     ('Drill',            'Tools'),
     ('Saw',              'Tools'),
     ('Lawn Mower',       'Tools'),
-    ('Screwdriver',      'Tools'),
+    ('Screwdriver',      'Tools')
 )
 SELECT v.name, c.id
 FROM v
