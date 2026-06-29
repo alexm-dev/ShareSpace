@@ -12,7 +12,7 @@ public class ShareSpacePage {
 
     public StackPane build() {
 
-        Region banner = Ui.image(0.31);
+        Region banner = Ui.image(0.31, Ui.resourceBytes("/images/header.jpg"));
 
         VBox who = new VBox(12,
                 Ui.light("WHO WE ARE", 11),

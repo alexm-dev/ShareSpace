@@ -6,7 +6,6 @@ import app.model.User;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -255,7 +254,8 @@ public class ProfileSettingsPage {
                 Ui.light("Delete account", 11), deleteInfo, delete, deleteError,
                 save);
         settings.setStyle("-fx-background-color: white;");
-        settings.setMaxWidth(Region.USE_PREF_SIZE);
+        settings.setMaxWidth(460);
+        settings.setPrefWidth(460);
 
         HBox settingsWrap = new HBox(settings);
         settingsWrap.setAlignment(Pos.CENTER);

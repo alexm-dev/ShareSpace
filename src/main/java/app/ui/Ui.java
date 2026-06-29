@@ -1,6 +1,7 @@
 package app.ui;
 
 import app.model.Location;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -38,12 +39,18 @@ import java.io.InputStream;
 
 public final class Ui {
 
-    private Ui() {}
+
+    /** Global font scale */
+    static final double FONT_SCALE = 1.2;
+
+    private static int scaled(int sizePx) {
+        return (int) Math.round(sizePx * FONT_SCALE);
+    }
 
     static Label label(String text, int sizePx, String extraStyle) {
         Label l = new Label(text);
         l.setWrapText(true);
-        l.setStyle("-fx-font-size: " + sizePx + "px;" + extraStyle);
+        l.setStyle("-fx-font-size: " + scaled(sizePx) + "px;" + extraStyle);
         return l;
     }
 
@@ -257,7 +264,7 @@ public final class Ui {
 
     static Button button(String text, int sizePx, String extraStyle) {
         Button b = new Button(text);
-        b.setStyle("-fx-font-size: " + sizePx + "px; -fx-background-radius: 20; -fx-cursor: hand;" + extraStyle);
+        b.setStyle("-fx-font-size: " + scaled(sizePx) + "px; -fx-background-radius: 20; -fx-cursor: hand;" + extraStyle);
         return b;
     }
 
@@ -298,8 +305,17 @@ public final class Ui {
         if (onClick != null) {
             box.setStyle("-fx-cursor: hand;");
             box.setOnMouseClicked(e -> onClick.run());
+            addHoverPop(box);
         }
         return box;
+    }
+
+    private static void addHoverPop(Node node) {
+        ScaleTransition st = new ScaleTransition(Duration.millis(130), node);
+        node.setOnMouseEntered(e -> { st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
+        node.setOnMouseExited(e -> { st.stop(); st.setToX(1.0); st.setToY(1.0); st.play(); });
+        node.setOnMousePressed(e -> { node.setScaleX(0.985); node.setScaleY(0.985); });
+        node.setOnMouseReleased(e -> { st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
     }
 
     static VBox ownerTile(String name, String price, double aspectRatio, byte[] imageData,
@@ -470,7 +486,7 @@ public final class Ui {
             ShareS.showProfileSettingsPage();
         });
         Button ratings = button(
-                "My Ratings)",
+                "My Ratings",
                 13,
                 "-fx-background-color: white;");
         ratings.setOnAction(event -> {
@@ -539,7 +555,6 @@ public final class Ui {
     }
 
     // button for drawer menu with default event = open drawer
-    private static boolean isOpen = false;
     private static Button getButton(TranslateTransition tt) {
         // icon for toggle button
         final String MenuIcon = "M4 18h16v-2H4v2zM4 13h16v-2H4v2zM4 8h16V6H4v2z";
@@ -554,7 +569,6 @@ public final class Ui {
                 + " -fx-padding: 6;");
 
         toggle.setOnAction(event -> {
-            isOpen = true;
             tt.setToX(0);
             tt.play();
         });
@@ -563,7 +577,6 @@ public final class Ui {
 
     // event for closing the drawer menu
     private static void closeMenu(TranslateTransition tt) {
-        isOpen = false;
         tt.setToX(MENU_WIDTH);
         tt.play();
     }

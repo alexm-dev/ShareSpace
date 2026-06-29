@@ -74,6 +74,9 @@ public class ShareS extends Application {
     // only used for login and register
     private static void showLogin(VBox root) {
         ScrollPane scrollPane = new ScrollPane(root);
+        // zoom the input controls (text fields, combos, date pickers) to match
+        // the scaled label/button text from Ui
+        scrollPane.setStyle("-fx-font-size: 15px;");
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -88,6 +91,7 @@ public class ShareS extends Application {
     // responsible for showing page in UI
     private static void showPage(StackPane root) {
         ScrollPane scrollPane = new ScrollPane(root);
+        scrollPane.setStyle("-fx-font-size: 15px;");
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);

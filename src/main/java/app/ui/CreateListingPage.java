@@ -14,7 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -320,7 +319,8 @@ public class CreateListingPage {
             form.getChildren().add(locationBox);
         }
         form.getChildren().addAll(error, submit);
-        form.setMaxWidth(Region.USE_PREF_SIZE);
+        form.setMaxWidth(460);
+        form.setPrefWidth(460);
 
         HBox formWrap = new HBox(form);
         formWrap.setAlignment(Pos.CENTER);
