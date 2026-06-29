@@ -1421,3 +1421,162 @@ Your application stores **encoded image bytes**, which is almost always the righ
 
 So your overall architecture is sound: keep images as encoded `byte[]` in the database, decode them into a JavaFX `Image` when needed, let the user edit/crop them, then encode the result back into a new `byte[]` for storage.
 "
+
+-------------------------------------------------------------------
+JavaFX animations for hovering
+------------------------------------------------------------------
+
+Prompt:
+"
+How to use JavaFX animations for a small hover pop ?
+"
+
+Answer:
+"
+
+A subtle "hover pop" effect is one of the easiest and nicest animations to add in JavaFX. The most common approach is to animate the node's `scaleX` and `scaleY` properties using a `ScaleTransition`.
+
+### Basic Example
+
+```java
+Button button = new Button("Hover me");
+
+ScaleTransition scaleUp = new ScaleTransition(Duration.millis(150), button);
+scaleUp.setToX(1.1);
+scaleUp.setToY(1.1);
+
+ScaleTransition scaleDown = new ScaleTransition(Duration.millis(150), button);
+scaleDown.setToX(1.0);
+scaleDown.setToY(1.0);
+
+button.setOnMouseEntered(e -> {
+    scaleDown.stop();
+    scaleUp.playFromStart();
+});
+
+button.setOnMouseExited(e -> {
+    scaleUp.stop();
+    scaleDown.playFromStart();
+});
+```
+
+This makes the button smoothly grow to **110%** when hovered and return to normal when the mouse leaves.
+
+---
+
+### A Reusable Method
+
+If you want to apply this to many controls:
+
+```java
+public static void addHoverPop(Node node) {
+    ScaleTransition enter = new ScaleTransition(Duration.millis(120), node);
+    enter.setToX(1.08);
+    enter.setToY(1.08);
+
+    ScaleTransition exit = new ScaleTransition(Duration.millis(120), node);
+    exit.setToX(1.0);
+    exit.setToY(1.0);
+
+    node.setOnMouseEntered(e -> {
+        exit.stop();
+        enter.playFromStart();
+    });
+
+    node.setOnMouseExited(e -> {
+        enter.stop();
+        exit.playFromStart();
+    });
+}
+```
+
+Usage:
+
+```java
+addHoverPop(button);
+addHoverPop(imageView);
+addHoverPop(cardPane);
+```
+
+---
+
+### Making It Feel More Natural
+
+A linear animation can feel robotic. JavaFX provides interpolators:
+
+```java
+enter.setInterpolator(Interpolator.EASE_BOTH);
+exit.setInterpolator(Interpolator.EASE_BOTH);
+```
+
+or
+
+```java
+Interpolator.SPLINE(0.25, 0.1, 0.25, 1.0)
+```
+
+for a CSS-like ease curve.
+
+---
+
+### Adding a Shadow
+
+Combining scale with a shadow gives a much more polished look.
+
+```java
+DropShadow shadow = new DropShadow();
+
+button.setOnMouseEntered(e -> {
+    button.setEffect(shadow);
+    scaleUp.playFromStart();
+});
+
+button.setOnMouseExited(e -> {
+    button.setEffect(null);
+    scaleDown.playFromStart();
+});
+```
+
+You can even animate the shadow radius using a `Timeline`.
+
+---
+
+### Using a Timeline Instead
+
+For more control over multiple properties:
+
+```java
+Timeline pop = new Timeline(
+    new KeyFrame(Duration.millis(150),
+        new KeyValue(button.scaleXProperty(), 1.08, Interpolator.EASE_BOTH),
+        new KeyValue(button.scaleYProperty(), 1.08, Interpolator.EASE_BOTH)
+    )
+);
+
+Timeline unpop = new Timeline(
+    new KeyFrame(Duration.millis(150),
+        new KeyValue(button.scaleXProperty(), 1.0, Interpolator.EASE_BOTH),
+        new KeyValue(button.scaleYProperty(), 1.0, Interpolator.EASE_BOTH)
+    )
+);
+```
+
+`Timeline` is preferable if you're animating several properties (scale, opacity, shadow, translation, etc.) simultaneously.
+
+---
+
+### Recommended Values
+
+For a subtle, modern hover effect:
+
+| Property     |                                    Value |
+| ------------ | ---------------------------------------: |
+| Duration     |                               120–180 ms |
+| Scale        |                                1.05–1.10 |
+| Interpolator | `EASE_BOTH` or `SPLINE(0.25,0.1,0.25,1)` |
+| Optional     |                   Slight shadow increase |
+
+Avoid scaling much beyond about `1.1` for buttons and small controls, as it can feel exaggerated.
+
+For most UI components, a `ScaleTransition` with `Interpolator.EASE_BOTH`, a duration around **150 ms**, and a target scale of **1.05–1.08** strikes a good balance between responsiveness and polish.
+"
