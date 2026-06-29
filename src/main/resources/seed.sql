@@ -27,36 +27,23 @@ VALUES
   ('Everything else', 'Discover hidden gems');
 
 INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Selfphone', id FROM categories WHERE name = 'Electronics';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'TV', id FROM categories WHERE name = 'Electronics';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Laptop', id FROM categories WHERE name = 'Electronics';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Camera', id FROM categories WHERE name = 'Electronics';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Smart Watch', id FROM categories WHERE name = 'Electronics';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Home Electronics', id FROM categories WHERE name = 'Electronics';
-
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Hammer', id FROM categories WHERE name = 'Tools';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Drill', id FROM categories WHERE name = 'Tools';
-
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Console', id FROM categories WHERE name = 'Gaming';
-
-INSERT OR IGNORE INTO sub_categories (name, category_id)
-SELECT 'Board Games', id FROM categories WHERE name = 'Gaming';
+WITH v(name, category_name) AS (
+  VALUES
+    ('Smartphone',       'Electronics'),
+    ('TV',               'Electronics'),
+    ('Laptop',           'Electronics'),
+    ('Camera',           'Electronics'),
+    ('Smart Watch',      'Electronics'),
+    ('Home Electronics', 'Electronics'),
+    ('Desktop Computer', 'Electronics'),
+    ('Hammer',           'Tools'),
+    ('Drill',            'Tools'),
+    ('Saw',              'Tools'),
+    ('Lawn Mower',       'Tools'),
+    ('Screwdriver',      'Tools'),
+SELECT v.name, c.id
+FROM v
+JOIN categories c ON c.name = v.category_name;
 
 -- Roles
 INSERT INTO roles (name) SELECT 'lender' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'lender');
