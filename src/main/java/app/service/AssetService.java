@@ -2,13 +2,14 @@ package app.service;
 
 import app.dao.AssetDAO;
 import app.dao.BookingDAO;
+import app.dao.ImageDAO;
 import app.dao.LocationDAO;
 import app.dao.UserDAO;
 import app.model.Asset;
 import app.model.Location;
 import app.model.User;
 import app.model.enums.BookingStatus;
-
+import static app.util.Constants.MAX_IMAGE_BYTES;
 import java.util.List;
 
 /**
@@ -16,13 +17,16 @@ import java.util.List;
  * Handles business logic related to asset creation, updating, deletion, and retrieval.
  */
 public class AssetService {
+
     private final AssetDAO assetDAO;
+    private final ImageDAO assetImageDAO;
     private final LocationDAO locationDAO;
     private final BookingDAO bookingDAO;
     private final UserDAO userDAO;
 
     public AssetService() {
         this.assetDAO = new AssetDAO();
+        this.assetImageDAO = new ImageDAO("asset_images", "asset_id");
         this.locationDAO = new LocationDAO();
         this.bookingDAO = new BookingDAO();
         this.userDAO = new UserDAO();
@@ -77,6 +81,10 @@ public class AssetService {
             return false;
         }
 
+        if (hasActiveBookings(asset.getId())) {
+            return false;
+        }
+
         return assetDAO.update(asset);
     }
 
@@ -98,7 +106,24 @@ public class AssetService {
             return false;
         }
 
+        if (hasActiveBookings(assetId)) {
+            return false;
+        }
+
         return assetDAO.delete(assetId);
+    }
+
+    /**
+     * Checks if an asset has any active bookings (via booking status).
+     * Is used to determine if an asset can be updated or deleted.
+     *
+     * @param assetId The ID of the asset to check.
+     * @return True if there are active bookings, false otherwise.
+     */
+    public boolean hasActiveBookings(int assetId) {
+        return bookingDAO.findByAssetId(assetId).stream()
+                .anyMatch(b -> b.getStatus() == BookingStatus.PENDING
+                        || b.getStatus() == BookingStatus.CONFIRMED);
     }
 
     /**
@@ -109,6 +134,55 @@ public class AssetService {
      */
     public Asset findById(int id) {
         return assetDAO.findById(id);
+    }
+
+    /**
+     * Saves an image for an asset listing.
+     * Only the assets owner can save an image.
+     *
+     * @param assetId the asset id
+     * @param data the raw image bytes
+     * @param mimeType the image mime type (e.g., "image/png")
+     * @param requestingUserID the user requesting the change; must own the asset
+     * @return true if the image was saved successfully
+     */
+    public boolean saveImage(int assetId, byte[] data, String mimeType, int requestingUserID) {
+        if (data == null || data.length == 0 || data.length > MAX_IMAGE_BYTES) {
+            return false;
+        }
+
+        Asset existing = assetDAO.findById(assetId);
+        if (existing == null || existing.getOwnerId() != requestingUserID) {
+            return false;
+        }
+
+        return assetImageDAO.save(assetId, data, mimeType);
+    }
+
+    /**
+     * Deletes the image for an asset listing.
+     * Only the assets owner can delete an image.
+     *
+     * @param assetId the asset id
+     * @param requestingUserID the user requesting the change; must own the asset
+     * @return true if the image was deleted successfully
+     */
+    public boolean deleteImage(int assetId, int requestingUserID) {
+        Asset existing = assetDAO.findById(assetId);
+        if (existing == null || existing.getOwnerId() != requestingUserID) {
+            return false;
+        }
+        return assetImageDAO.delete(assetId);
+    }
+
+    /**
+     * Retrieves the image for an asset listing.
+     *
+     * @param assetId the asset id
+     * @return the raw image bytes, or null if not found
+     */
+    public byte[] getImage(int assetId) {
+        return assetImageDAO.find(assetId);
     }
 
     /**

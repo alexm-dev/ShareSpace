@@ -74,4 +74,24 @@ public class CatalogService {
     public List<Asset> getAllAssets() {
         return assetDAO.findAll();
     }
+
+    /**
+     * Gets the full category path for a given sub-category.
+     * Is used to display category information in the asset listing view.
+     *
+     * @param subCategoryId the sub-category id
+     * @return the full category path in the format "Category · SubCategory", or just
+     * the sub-category name if the parent category is not found, or an empty string if the sub-category is not found
+     */
+    public String getCategoryPath(int subCategoryId) {
+        SubCategory sub = subCategoryDAO.findById(subCategoryId);
+        if (sub == null) {
+            return "";
+        }
+        Category category = categoryDAO.findById(sub.getCategoryId());
+        if (category == null) {
+            return sub.getName();
+        }
+        return category.getName() + " · " + sub.getName();
+    }
 }

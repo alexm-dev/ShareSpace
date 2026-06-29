@@ -4,11 +4,13 @@ import app.dao.UserDAO;
 import app.dao.UserRoleDAO;
 import app.dao.RoleDAO;
 import app.dao.LocationDAO;
+import app.dao.ImageDAO;
 import app.model.User;
 import app.model.UserRole;
 import app.model.Role;
 import app.model.Location;
 import app.util.AuthUtil;
+import static app.util.Constants.MAX_IMAGE_BYTES;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,12 +25,14 @@ public class UserService {
     private final UserRoleDAO userRoleDAO;
     private final RoleDAO roleDAO;
     private final LocationDAO locationDAO;
+    private final ImageDAO userImageDAO;
 
     public UserService() {
         this.userDAO = new UserDAO();
         this.userRoleDAO = new UserRoleDAO();
         this.roleDAO = new RoleDAO();
         this.locationDAO = new LocationDAO();
+        this.userImageDAO = new ImageDAO("user_images", "user_id");
     }
 
     /**
@@ -169,6 +173,37 @@ public class UserService {
         return userDAO.update(user);
     }
 
+
+    /**
+     * Updates a users first and last name.
+     *
+     * @param userId the user id
+     * @param firstName the new first name
+     * @param lastName the new last name
+     * @return true if updated, false if the user was not found
+     */
+    public boolean updateName(int userId, String firstName, String lastName) {
+        User user = userDAO.findById(userId);
+        if (user == null) {
+            return false;
+        }
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        return userDAO.update(user);
+    }
+
+
+    /**
+     * Checks if a user has a first name and last name set.
+     *
+     * @param userId the user id
+     * @return true if the user has a name set, false if not or if the user does not exist
+     */
+    public boolean hasName(int userId) {
+        User user = userDAO.findById(userId);
+        return user != null && user.getFullName() != null;
+    }
+
     /**
      * Returns the users saved location, if any.
      *
@@ -216,6 +251,44 @@ public class UserService {
 
         user.setLocationId(location.getId());
         return userDAO.update(user);
+    }
+
+    /**
+     * Saves a users profile image. Overwrites any existing image.
+     *
+     * @param userId the user id
+     * @param data the raw image bytes
+     * @param mimeType the image MIME type (eg. "image/png")
+     * @return true if saved, false if the user was not found or the image is invalid
+     */
+    public boolean saveProfileImage(int userId, byte[] data, String mimeType) {
+        if (data == null || data.length == 0 || data.length > MAX_IMAGE_BYTES) {
+            return false;
+        }
+        if (userDAO.findById(userId) == null) {
+            return false;
+        }
+        return userImageDAO.save(userId, data, mimeType);
+    }
+
+    /**
+     * Retrieves a users profile image.
+     *
+     * @param userId the user id
+     * @return the raw image bytes, or null if no image is found
+     */
+    public byte[] getProfileImage(int userId) {
+        return userImageDAO.find(userId);
+    }
+
+    /**
+     * Removes a users profile image.
+     *
+     * @param userId the user id
+     * @return true if an image was removed
+     */
+    public boolean deleteProfileImage(int userId) {
+        return userImageDAO.delete(userId);
     }
 
     /**
