@@ -17,7 +17,7 @@ The Developers are:
 - Alexandros McCray (`alexandros [at] amccray [dot] com`)
 - Lazar Milosevic
 - Nadhir Hamdi
-- Theo Deichman
+- Theo Deichmann
 
 ## TODOs
 
