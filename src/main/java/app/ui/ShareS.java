@@ -59,6 +59,7 @@ public class ShareS extends Application {
     public static void showStartPage()                           { showPage(new ShareSpacePage().build()); }
     public static void showCatalogPage()                         { showPage(new CatalogPage().build()); }
     public static void showProfilePage()                         { showPage(new ProfilePage().build()); }
+    public static void showUserProfilePage(app.model.User user)  { showPage(new ProfilePage(user).build()); }
     public static void showBookingPage()                         { showPage(new BookingPage().build()); }
     public static void showProfileSettingsPage()                 { showPage(new ProfileSettingsPage().build()); }
     public static void showAboutPage()                           { showPage(new AboutPage().build()); }

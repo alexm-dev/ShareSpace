@@ -195,15 +195,17 @@ public class BookingFlowPage {
         form.setMinWidth(320);
         form.setPrefWidth(320);
 
-        VBox pictureBox = new VBox(Ui.image(0.55, ShareS.assetService.getImage(asset.getId())));
-        pictureBox.setMinWidth(0);
-        pictureBox.setMaxWidth(600);
-        HBox.setHgrow(pictureBox, Priority.ALWAYS);
+        Region picture = Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId()));
 
-        HBox content = new HBox(48, form, pictureBox);
+        HBox content = new HBox(48, form, picture);
         content.setAlignment(Pos.TOP_LEFT);
+        content.setMaxWidth(Region.USE_PREF_SIZE);
 
-        return Ui.buildPage(title, content);
+        // centre the whole booking block on the page, like the listing view
+        HBox contentWrap = new HBox(content);
+        contentWrap.setAlignment(Pos.CENTER);
+
+        return Ui.buildPage(title, contentWrap);
     }
 
     private void showError(Label error, String message) {
