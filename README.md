@@ -1,27 +1,37 @@
 # ShareSpace
 
+## What is ShareSpace ?
+
+ShareSpace is a user driven marketplace to rent and lend various products and items another person might want to share.
+
+It enables an easy interface for you to interact with a user driven platform to rent a selected item
+or to lend an item you wish to share with the public.
+
+ShareSpace is community focused and as such, handles that interaction between platform and community in a user first approach.
+
+## Project Scope
+
+ShareSpace was made for a University Project in accordance with the Frankfurt University of Applied Sciences.
+
+The Developers are:
+- Alexandros McCray (`alexandros [at] amccray [dot] com`)
+- Lazar Milosevic
+- Nadhir Hamdi
+- Theo Deichman
+
 ## TODOs
 
 - [ ] UI
 
 - Rating Page -> Submit rating (1-5 stars). 
-- Asset Page
-    - Image upload
 - Default Images
-- Category in MyListing
 - Renter to see Current Bookings in My Bookins.
 - Back Button
-- Real Name in settings / Bookins only (DB)
 - Sub Categories
 
 - Other: Dark Mode settings etc..
 
-TerminalApp.java is a temporary testing field to testout the business logic without any UI.
-After we implement a working UI, then we should remove the CLI package.
-
-The AdminMenu.java would also need to be switched to an UI panel version and be removed as a CLI package.
-
-## Environment setup:
+## Development and configuration:
 
 - JDK: use either temurin or OpenJDK. Needs to be version 25
 
@@ -78,7 +88,7 @@ java -jar /target/ShareSpace-X.Y.Z.jar
 | JSON       | Jackson (asset metadata serialization) |
 | Logs       | SLF4J with Logback                     |
 | Packaging  | JPackage (Packaging script)            |
-| UI         | JavaFX                                 |
+| UI         | JavaFX (with Swing as an UI extension) |
 | CI/CD      | GitHub Actions                         |
 
 **Architecture:** DB Models -> DAOs -> Services -> JavaFX UI
@@ -108,3 +118,9 @@ Download the action workflow artifact from the the [Java CI Maven](https://githu
 Click on the most recent commit and then download the `ShareSpace-submission`.
 
 Prefer the script.
+
+## License
+
+ShareSpace is licensed under the Apache-2.0 license.
+
+See the [LICENSE](LICENSE) files for more details.
