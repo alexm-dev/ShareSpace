@@ -23,7 +23,8 @@ import javafx.util.Duration;
 
 public final class Ui {
 
-    private Ui() {}
+    private Ui() {
+    }
 
     static Label label(String text, int sizePx, String extraStyle) {
         Label l = new Label(text);
@@ -32,8 +33,13 @@ public final class Ui {
         return l;
     }
 
-    static Label bold(String text, int sizePx)  { return label(text, sizePx, "-fx-font-weight: bold;"); }
-    static Label light(String text, int sizePx) { return label(text, sizePx, "-fx-text-fill: #888888;"); }
+    static Label bold(String text, int sizePx) {
+        return label(text, sizePx, "-fx-font-weight: bold;");
+    }
+
+    static Label light(String text, int sizePx) {
+        return label(text, sizePx, "-fx-text-fill: #888888;");
+    }
 
     static Region image(double aspectRatio) {
         Region r = new Region();
@@ -73,7 +79,7 @@ public final class Ui {
     }
 
     static Button iconButton(String svgPath, String bgColor, String iconColor,
-                             String tooltip, Runnable action) {
+            String tooltip, Runnable action) {
         SVGPath icon = new SVGPath();
         icon.setContent(svgPath);
         icon.setFill(Color.web(iconColor));
@@ -85,8 +91,10 @@ public final class Ui {
         b.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 20;"
                 + " -fx-cursor: hand; -fx-min-width: 30px; -fx-min-height: 30px;"
                 + " -fx-padding: 6;");
-        if (tooltip != null) b.setTooltip(new Tooltip(tooltip));
-        if (action != null) b.setOnAction(e -> action.run());
+        if (tooltip != null)
+            b.setTooltip(new Tooltip(tooltip));
+        if (action != null)
+            b.setOnAction(e -> action.run());
         return b;
     }
 
@@ -109,7 +117,7 @@ public final class Ui {
     }
 
     static VBox ownerTile(String name, String price, double aspectRatio,
-                          Runnable onEdit, Runnable onDelete) {
+            Runnable onEdit, Runnable onDelete) {
         HBox head = new HBox(6, bold(name, 13), light(price, 11));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
@@ -220,19 +228,18 @@ public final class Ui {
         return root;
     }
 
-
-
-    //private and final method for building a page
+    // private and final method for building a page
     private static VBox menuPanel;
     private static boolean isOpen = false;
     private static final double MENU_WIDTH = 200;
+
     private static StackPane buildPagerInternal(Node... children) {
-        //logo with event
+        // logo with event
         Label logo = bold("ShareSpace®", 19);
         logo.setStyle("-fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 20;");
-        logo.setOnMouseClicked(event -> ShareS.showStartPage()); //always has ShareSpace top left wit event
+        logo.setOnMouseClicked(event -> ShareS.showStartPage()); // always has ShareSpace top left wit event
 
-        //create sliding menuPanel
+        // create sliding menuPanel
         menuPanel = new VBox(10);
         menuPanel.setPrefWidth(MENU_WIDTH);
         menuPanel.setMaxWidth(MENU_WIDTH);
@@ -241,9 +248,9 @@ public final class Ui {
         StackPane.setAlignment(menuPanel, Pos.TOP_RIGHT);
         menuPanel.setTranslateX(MENU_WIDTH);
 
-        //content for the menuPanel
-        //ADD NEW BUTTONS HERE
-        //don't forget to add to panel (method below)
+        // content for the menuPanel
+        // ADD NEW BUTTONS HERE
+        // don't forget to add to panel (method below)
         Button login = button(
                 "Login/Sign up",
                 13,
@@ -306,28 +313,29 @@ public final class Ui {
             }
         });
 
-        //add all buttons to menuPanel
-        if (ShareS.session.getActiveUser() == null)/* not logged in*/ {
+        // add all buttons to menuPanel
+        if (ShareS.session.getActiveUser() == null)/* not logged in */ {
             menuPanel.getChildren().add(login);
-        }else {
+        } else {
             menuPanel.getChildren().add(profile);
         }
-        //if new button created add below
+        // if new button created add below
         menuPanel.getChildren().addAll(catalog, bookings, ratings, about, settings);
-        //if logged in show logout else not
-        if (ShareS.session.getActiveUser() != null) {menuPanel.getChildren().add(logout);}
+        // if logged in show logout else not
+        if (ShareS.session.getActiveUser() != null) {
+            menuPanel.getChildren().add(logout);
+        }
 
-
-        //toggleMenu button
+        // toggleMenu button
         Button toggle = getButton();
 
-        //heading is logo + toggle button
+        // heading is logo + toggle button
         HBox heading = new HBox(20, logo, spacer(), toggle);
         heading.setAlignment(Pos.CENTER_LEFT);
         heading.setPadding(new Insets(16, 0, 16, 0));
         heading.setStyle("-fx-border-color: transparent transparent #e5e5e5 transparent; -fx-border-width: 0 0 1 0;");
 
-        //combining children(content) with heading and footer
+        // combining children(content) with heading and footer
         VBox mainPage = new VBox();
         mainPage.setSpacing(40);
         mainPage.getChildren().add(heading);
@@ -343,9 +351,8 @@ public final class Ui {
         return root;
     }
 
-
     private static Button getButton() {
-        //icon for toggle button
+        // icon for toggle button
         final String MenuIcon = "M4 18h16v-2H4v2zM4 13h16v-2H4v2zM4 8h16V6H4v2z";
         SVGPath icon = new SVGPath();
         icon.setContent(MenuIcon);
@@ -358,8 +365,12 @@ public final class Ui {
         toggle.setStyle("-fx-background-color: white; -fx-background-radius: 20;"
                 + " -fx-cursor: hand; -fx-min-width: 30px; -fx-min-height: 30px;"
                 + " -fx-padding: 6;");
+        TranslateTransition tt = new TranslateTransition(Duration.millis(500), menuPanel);
         toggle.setOnAction(event -> {
-            TranslateTransition tt = new TranslateTransition(Duration.millis(1000), menuPanel);
+            if (isOpen) {
+                isOpen = false;
+            }
+
             tt.setToX(isOpen ? MENU_WIDTH : 0);
             tt.play();
             isOpen = !isOpen;
@@ -367,8 +378,7 @@ public final class Ui {
         return toggle;
     }
 
-
-    //public method others can use for building a page
+    // public method others can use for building a page
     static StackPane buildPage(Node... children) {
         return buildPagerInternal(children);
     }
