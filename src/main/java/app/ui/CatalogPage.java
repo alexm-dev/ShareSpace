@@ -3,20 +3,13 @@ package app.ui;
 import app.model.Category;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.util.List;
 
 public class CatalogPage {
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         HBox title = new HBox(16,
                 Ui.bold("CATALOG", 28), Ui.spacer(), Ui.light("BROWSE CATEGORIES", 11));
@@ -29,6 +22,6 @@ public class CatalogPage {
                 .toArray(Node[]::new);
         GridPane grid = Ui.grid(3, 16, tiles);
 
-        return Ui.page(header, title, grid, Ui.footer());
+        return Ui.buildPage(title, grid);
     }
 }

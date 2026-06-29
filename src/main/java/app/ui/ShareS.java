@@ -53,24 +53,26 @@ public class ShareS extends Application {
         showStartPage();
     }
 
-    public static void showStartPage()   { showPage(new ShareSpacePage().build(), false); }
-    public static void showCatalogPage() { showPage(new CatalogPage().build(), false); }
-    public static void showProfilePage() { showPage(new ProfilePage().build(), false); }
-    public static void showLoginPage()   { showPage(new LoginPage().build(), true); }
-    public static void showBookingPage() { showPage(new BookingPage().build(), false); }
-    public static void showRegistrationPage() { showPage(new RegistrationPage().build(), true); }
-    public static void showProfileSettingsPage() { showPage2(new ProfileSettingsPage().build()); }
-    public static void showAboutPage() { showPage2(new AboutPage().build()); }
-    public static void showRatingPage() { showPage2(new RatingPage().build()); }
 
-    public static void showCategoryPage(Category category) { showPage(new CategoryPage(category).build(), false); }
-    public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build(), false); }
-    public static void showListingDetailPage(Asset asset) { showPage(new ListingDetailPage(asset).build(), false); }
-    public static void showBookingFlowPage(Asset asset) { showPage(new BookingFlowPage(asset).build(), false); }
-    public static void showCreateListingPage() { showPage(new CreateListingPage(null).build(), false); }
-    public static void showEditListingPage(Asset asset) { showPage(new CreateListingPage(asset).build(), false); }
+    public static void showLoginPage()                           { showLogin(new LoginPage().build()); }
+    public static void showRegistrationPage()                    { showLogin(new RegistrationPage().build()); }
+    public static void showStartPage()                           { showPage(new ShareSpacePage().build()); }
+    public static void showCatalogPage()                         { showPage(new CatalogPage().build()); }
+    public static void showProfilePage()                         { showPage(new ProfilePage().build()); }
+    public static void showBookingPage()                         { showPage(new BookingPage().build()); }
+    public static void showProfileSettingsPage()                 { showPage(new ProfileSettingsPage().build()); }
+    public static void showAboutPage()                           { showPage(new AboutPage().build()); }
+    public static void showRatingPage()                          { showPage(new RatingPage().build()); }
+    public static void showCategoryPage(Category category)       { showPage(new CategoryPage(category).build()); }
+    public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build()); }
+    public static void showListingDetailPage(Asset asset)        { showPage(new ListingDetailPage(asset).build()); }
+    public static void showBookingFlowPage(Asset asset)          { showPage(new BookingFlowPage(asset).build()); }
+    public static void showCreateListingPage()                   { showPage(new CreateListingPage(null).build()); }
+    public static void showEditListingPage(Asset asset)          { showPage(new CreateListingPage(asset).build()); }
 
-    private static void showPage(VBox root, boolean fitHeight) {
+
+    // only used for login and register
+    private static void showLogin(VBox root) {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
@@ -80,12 +82,11 @@ public class ShareS extends Application {
         Scene scene = new Scene(scrollPane);
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setAlwaysOnTop(true);
     }
 
     // responsible for showing page in UI
-    // TODO: change all pages that use showPAge to showPage2
-    // TODO: give better fitting name
-    private static void showPage2(StackPane root) {
+    private static void showPage(StackPane root) {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);

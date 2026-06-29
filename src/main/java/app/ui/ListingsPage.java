@@ -4,10 +4,7 @@ import app.model.Asset;
 import app.model.SubCategory;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.util.List;
 
@@ -22,11 +19,7 @@ public class ListingsPage {
         this.subCategory = subCategory;
     }
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         HBox title = new HBox(16,
                 Ui.bold(subCategory.getName().toUpperCase(), 28),
@@ -36,7 +29,7 @@ public class ListingsPage {
 
         List<Asset> assets = ShareS.catalogService.getAssetsBySubCategory(subCategory.getId());
         if (assets.isEmpty()) {
-            return Ui.page(header, title, Ui.light("No listings in this sub-category yet.", 13), Ui.footer());
+            return Ui.buildPage(title, Ui.light("No listings in this sub-category yet.", 13));
         }
 
         Node[] tiles = assets.stream()
@@ -49,6 +42,6 @@ public class ListingsPage {
                 .toArray(Node[]::new);
         GridPane grid = Ui.grid(3, 16, tiles);
 
-        return Ui.page(header, title, grid, Ui.footer());
+        return Ui.buildPage(title, grid);
     }
 }

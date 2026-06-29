@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
@@ -28,11 +29,7 @@ public class ListingDetailPage {
         this.asset = asset;
     }
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         HBox title = new HBox(16,
                 Ui.bold(asset.getModel().toUpperCase(), 28),
@@ -77,7 +74,6 @@ public class ListingDetailPage {
         topWrap.setMaxWidth(Double.MAX_VALUE);
 
         List<Node> children = new ArrayList<>();
-        children.add(header);
         children.add(title);
         children.add(topWrap);
 
@@ -92,8 +88,7 @@ public class ListingDetailPage {
             children.add(descWrap);
         }
 
-        children.add(Ui.footer());
-        return Ui.page(children.toArray(new Node[0]));
+        return Ui.buildPage(children.toArray(new Node[0]));
     }
 
     private Region action(User me) {

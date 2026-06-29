@@ -40,13 +40,8 @@ public class CreateListingPage {
         this.editing = editing;
     }
 
-    public VBox build() {
+    public StackPane build() {
         boolean isEdit = editing != null;
-
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
 
         HBox title = new HBox(16,
                 Ui.bold(isEdit ? "EDIT LISTING" : "NEW LISTING", 28),
@@ -54,27 +49,21 @@ public class CreateListingPage {
                 Ui.light("MY LISTINGS", 11));
         title.setAlignment(Pos.BOTTOM_LEFT);
 
-        if (!ShareS.session.isLoggedIn()) {
-            Button login = Ui.button("Log in", 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
-            login.setOnAction(e -> ShareS.showLoginPage());
-            return Ui.page(header, title, Ui.light("You need to be logged in.", 13), login, Ui.footer());
-        }
-
         int me = ShareS.session.getActiveUser().getId();
         if (!isEdit && !ShareS.userService.hasRole(me, "lender")) {
             Button settings = Ui.button("Go to settings", 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
             settings.setOnAction(e -> ShareS.showProfileSettingsPage());
-            return Ui.page(header, title,
+            return Ui.buildPage(title,
                     Ui.light("You need the lender role to create listings. Add it in settings.", 13),
-                    settings, Ui.footer());
+                    settings);
         }
 
         if (isEdit && ShareS.assetService.hasActiveBookings(editing.getId())) {
             Button back = Ui.button("Back to profile", 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
             back.setOnAction(e -> ShareS.showProfilePage());
-            return Ui.page(header, title,
+            return Ui.buildPage(title,
                     Ui.light("This listing has active bookings and can't be edited.", 13),
-                    back, Ui.footer());
+                    back);
         }
 
         ComboBox<Category> categoryBox = new ComboBox<>();
@@ -336,7 +325,7 @@ public class CreateListingPage {
         HBox formWrap = new HBox(form);
         formWrap.setAlignment(Pos.CENTER);
 
-        return Ui.page(header, title, formWrap, Ui.footer());
+        return Ui.buildPage(title, formWrap);
     }
 
     private void addSchemaRow(VBox container, String key, String value) {

@@ -34,7 +34,7 @@ public class LoginPage {
         loginBtn.setMaxWidth(Double.MAX_VALUE);
         loginBtn.setOnAction(e -> {
             if (ShareS.session.login(email.getText().trim(), pw.getText().toCharArray()) != null) {
-                ShareS.showCatalogPage();
+                ShareS.showStartPage();
             } else {
                 error.setText("Invalid email or password.");
                 pw.clear();

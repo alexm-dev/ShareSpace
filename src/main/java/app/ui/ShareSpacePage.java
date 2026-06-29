@@ -1,18 +1,11 @@
 package app.ui;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 public class ShareSpacePage {
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "ABOUT", "LOGIN"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showAboutPage, ShareS::showLoginPage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         Region banner = Ui.image(0.31);
 
@@ -46,7 +39,7 @@ public class ShareSpacePage {
                 Ui.button("ABOUT US", 13, "-fx-background-color: #ffd000;"));
         work.setAlignment(Pos.CENTER);
 
-        return Ui.page(header, banner, who, strip, what, steps, slash, work, Ui.footer());
+        return Ui.buildPage(banner, who, strip, what, steps, slash, work);
     }
 
     private VBox step(String number, String title, String desc) {

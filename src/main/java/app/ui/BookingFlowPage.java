@@ -10,10 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -29,11 +26,7 @@ public class BookingFlowPage {
         this.asset = asset;
     }
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         HBox title = new HBox(16,
                 Ui.bold("BOOK " + asset.getModel().toUpperCase(), 28),
@@ -41,18 +34,10 @@ public class BookingFlowPage {
                 Ui.light("BOOKING", 11));
         title.setAlignment(Pos.BOTTOM_LEFT);
 
-        if (!ShareS.session.isLoggedIn()) {
-            Button login = Ui.button("Log in to book", 13,
-                    "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
-            login.setOnAction(e -> ShareS.showLoginPage());
-            return Ui.page(header, title,
-                    Ui.light("You need to be logged in to book a listing.", 13), login, Ui.footer());
-        }
-
         User me = ShareS.session.getActiveUser();
         if (asset.getOwnerId() == me.getId()) {
-            return Ui.page(header, title,
-                    Ui.light("You cannot book your own listing.", 13), Ui.footer());
+            return Ui.buildPage(title,
+                    Ui.light("You cannot book your own listing.", 13));
         }
 
         Location loc = ShareS.assetService.getLocationFor(asset.getId(), me.getId());
@@ -218,7 +203,7 @@ public class BookingFlowPage {
         HBox content = new HBox(48, form, pictureBox);
         content.setAlignment(Pos.TOP_LEFT);
 
-        return Ui.page(header, title, content, Ui.footer());
+        return Ui.buildPage(title, content);
     }
 
     private void showError(Label error, String message) {

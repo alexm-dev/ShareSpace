@@ -11,11 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -32,18 +28,13 @@ public class BookingPage {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "PROFILE"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfilePage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         HBox title = new HBox(16,
                 Ui.bold("BOOKINGS", 28), Ui.spacer(), Ui.light("MY RENTALS", 11));
         title.setAlignment(Pos.BOTTOM_LEFT);
 
         List<Node> children = new ArrayList<>();
-        children.add(header);
         children.add(title);
 
         User activeUser = ShareS.session.getActiveUser();
@@ -53,9 +44,8 @@ public class BookingPage {
 
         children.add(Ui.light("INCOMING BOOKINGS", 11));
         children.add(buildTable());
-        children.add(Ui.footer());
 
-        return Ui.page(children.toArray(new Node[0]));
+        return Ui.buildPage(children.toArray(new Node[0]));
     }
 
     private VBox buildListingsSection(User user) {

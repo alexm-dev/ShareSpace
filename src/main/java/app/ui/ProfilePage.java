@@ -9,10 +9,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -24,11 +21,7 @@ import java.util.Optional;
 
 public class ProfilePage {
 
-    public VBox build() {
-        Region header = Ui.header(
-                new String[]{"CATALOG", "BOOKINGS", "SETTINGS"},
-                new Runnable[]{ShareS::showCatalogPage, ShareS::showBookingPage, ShareS::showProfileSettingsPage},
-                ShareS::showStartPage);
+    public StackPane build() {
 
         User user = ShareS.session.getActiveUser();
         String displayName = user != null ? "@" + user.getUsername().toUpperCase() : "@GUEST";
@@ -106,7 +99,7 @@ public class ProfilePage {
         ratingSection.setAlignment(Pos.CENTER);
         ratingSection.setMaxWidth(Double.MAX_VALUE);
 
-        return Ui.page(header, titleRow, items, ratingSection, Ui.footer());
+        return Ui.buildPage(titleRow, items, ratingSection);
     }
 
     private void chooseAvatar(User user) {

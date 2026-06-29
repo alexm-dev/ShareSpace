@@ -35,8 +35,7 @@ import java.io.ByteArrayInputStream;
 
 public final class Ui {
 
-    private Ui() {
-    }
+    private Ui() {}
 
     static Label label(String text, int sizePx, String extraStyle) {
         Label l = new Label(text);
@@ -331,49 +330,6 @@ public final class Ui {
         StackPane sp = new StackPane(bg, content);
         StackPane.setAlignment(content, Pos.BOTTOM_LEFT);
         return sp;
-    }
-
-    static HBox header(String[] navItems, Runnable[] navActions, Runnable logoAction) {
-        Label logo = bold("ShareSpace®", 19);
-        logo.setStyle("-fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 20;");
-        if (logoAction != null) {
-            logo.setOnMouseClicked(e -> logoAction.run());
-        }
-
-        HBox bar = new HBox(20, logo, spacer());
-        bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setPadding(new Insets(16, 0, 16, 0));
-        bar.setStyle("-fx-border-color: transparent transparent #e5e5e5 transparent; -fx-border-width: 0 0 1 0;");
-
-        for (int i = 0; i < navItems.length; i++) {
-            Button link = new Button(navItems[i]);
-            link.setStyle("-fx-font-size: 13px; -fx-background-color: transparent; -fx-cursor: hand;");
-            final int index = i;
-            if (navActions != null && navActions[i] != null) {
-                link.setOnAction(e -> navActions[index].run());
-            }
-            bar.getChildren().add(link);
-        }
-        return bar;
-    }
-
-    static VBox page(Node... children) {
-        // push the footer (always the last child) to the bottom of the viewport
-        Node[] laidOut = children;
-        if (children.length > 1) {
-            Region grow = new Region();
-            VBox.setVgrow(grow, Priority.ALWAYS);
-            laidOut = new Node[children.length + 1];
-            System.arraycopy(children, 0, laidOut, 0, children.length - 1);
-            laidOut[children.length - 1] = grow;
-            laidOut[children.length] = children[children.length - 1];
-        }
-
-        VBox root = new VBox(40, laidOut);
-        root.setFillWidth(true);
-        root.setPadding(new Insets(0, 60, 40, 60));
-        root.setStyle("-fx-background-color: white;");
-        return root;
     }
 
     // private method for building a page

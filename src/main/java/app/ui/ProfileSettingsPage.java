@@ -18,7 +18,6 @@ public class ProfileSettingsPage {
     public StackPane build() {
 
         User user = ShareS.session.getActiveUser();
-        //what if no user is logged in? code here
 
         HBox title = new HBox(
                 16,
