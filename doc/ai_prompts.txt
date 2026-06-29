@@ -841,9 +841,9 @@ That's the full loop: dependencies → code calls → `logback.xml` controls for
 "
 
 
----------------------------------------------
+------------------------------------------------------------------------------------------------
 SQL seeding
----------------------------------------------
+------------------------------------------------------------------------------------------------
 
 "
 Prompt:
@@ -948,4 +948,476 @@ JOIN categories c ON c.name = v.column2;
 Functionally identical, just less self-documenting. I'd keep the CTE version in your `seed.sql` for readability.
 
 One note since this is seed data: `INSERT OR IGNORE` here only skips rows that violate a constraint, so if there's no `UNIQUE` on `sub_categories(name, category_id)` you'll get duplicates on re-run. If idempotent seeding matters to you, add a unique constraint on that pair (or on `name` if sub-category names are globally unique) so the `OR IGNORE` actually has something to ignore against.
+"
+
+
+------------------------------------------------------------------------------------------------
+Image Cropping
+------------------------------------------------------------------------------------------------
+
+Prompt:
+"
+How to use javaFX-swing to make a crop box for image cropping ? 
+
+And generally how to use javaFX to create a crop dialog to actually crop a upload image ?
+Using JavaFX.geometry.Rectangle to create a box and then a handle for Mouse cropping in a dialog ?
+
+Using a byte vector to pass the raw data and the ratio seems plausible ?
+
+and a render function to also render the image source in the dialog also ?
+"
+
+Answer:
+"
+
+Yes. The typical approach in JavaFX is **not** to crop the image while the user is dragging. Instead:
+
+1. Display the image.
+2. Draw a resizable crop rectangle on top of it.
+3. Let the user move/resize the rectangle.
+4. When the user clicks **Crop**, convert the rectangle from view coordinates to image coordinates.
+5. Crop the original image pixels.
+
+You generally don't need Swing at all unless you're integrating into an existing Swing application.
+
+## Pure JavaFX approach
+
+A common layout is:
+
+```text
+Stage
+ └── BorderPane
+      ├── StackPane
+      │     ├── ImageView
+      │     ├── Dark overlay (optional)
+      │     └── Crop Rectangle + resize handles
+      └── Buttons
+            Crop
+            Cancel
+```
+
+The `StackPane` lets you layer the crop rectangle over the image.
+
+```java
+Image image = new Image(inputStream);
+
+ImageView imageView = new ImageView(image);
+imageView.setPreserveRatio(true);
+
+Rectangle cropRect = new Rectangle();
+cropRect.setStroke(Color.DODGERBLUE);
+cropRect.setFill(Color.color(0,0,1,0.15));
+
+StackPane stack = new StackPane(imageView, cropRect);
+```
+
+---
+
+## Mouse interaction
+
+Typically store:
+
+```java
+double startX;
+double startY;
+```
+
+On mouse pressed:
+
+```java
+startX = event.getX();
+startY = event.getY();
+
+cropRect.setX(startX);
+cropRect.setY(startY);
+cropRect.setWidth(0);
+cropRect.setHeight(0);
+```
+
+During drag:
+
+```java
+cropRect.setWidth(event.getX() - startX);
+cropRect.setHeight(event.getY() - startY);
+```
+
+A production implementation also supports:
+
+* negative dragging
+* moving the crop rectangle
+* resizing using handles
+* minimum size
+* optional aspect ratio locking
+
+---
+
+## Resize handles
+
+Usually place 8 small circles or squares:
+
+```text
+O------O------O
+|             |
+|             |
+O             O
+|             |
+|             |
+O------O------O
+```
+
+Each handle has its own drag handler.
+
+Example:
+
+```java
+Circle topLeft = new Circle(5);
+
+topLeft.setOnMouseDragged(e -> {
+    cropRect.setX(e.getX());
+    cropRect.setY(e.getY());
+});
+```
+
+Whenever the rectangle changes, update the handle positions.
+
+---
+
+## Cropping
+
+The rectangle is **not** the crop itself.
+
+When the user presses Crop:
+
+```java
+PixelReader reader = image.getPixelReader();
+
+WritableImage cropped = new WritableImage(
+    reader,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight
+);
+```
+
+This is extremely fast.
+
+---
+
+## Converting view coordinates
+
+This is the important part.
+
+Suppose your image is
+
+```
+4000 × 3000
+```
+
+but displayed as
+
+```
+800 × 600
+```
+
+The crop rectangle exists in **view coordinates**.
+
+You convert:
+
+```java
+double scaleX = image.getWidth() / imageView.getBoundsInLocal().getWidth();
+double scaleY = image.getHeight() / imageView.getBoundsInLocal().getHeight();
+
+int cropX = (int)(cropRect.getX() * scaleX);
+int cropY = (int)(cropRect.getY() * scaleY);
+int cropW = (int)(cropRect.getWidth() * scaleX);
+int cropH = (int)(cropRect.getHeight() * scaleY);
+```
+
+Then crop from the original image.
+
+This preserves full resolution.
+
+---
+
+## Aspect ratio
+
+If you want
+
+* 1:1
+* 4:3
+* 16:9
+
+simply constrain the drag.
+
+Example:
+
+```java
+double ratio = 16.0 / 9.0;
+
+double width = mouseX - startX;
+double height = width / ratio;
+
+cropRect.setWidth(width);
+cropRect.setHeight(height);
+```
+
+---
+
+## Passing image data
+
+Passing raw bytes is fine if that's what your application already uses.
+
+Example:
+
+```java
+byte[] imageBytes;
+```
+
+Convert once:
+
+```java
+Image image = new Image(new ByteArrayInputStream(imageBytes));
+```
+
+After cropping:
+
+```java
+WritableImage cropped = ...
+```
+
+If you need bytes again:
+
+```
+WritableImage
+        ↓
+BufferedImage
+        ↓
+ImageIO.write(...)
+        ↓
+byte[]
+```
+
+Avoid repeatedly decoding the image during dragging. Keep the decoded `Image` in memory while the dialog is open.
+
+---
+
+## Swing + JavaFX
+
+Only use the Swing bridge if your application is Swing-based.
+
+Typical setup:
+
+```text
+Swing JFrame
+    ↓
+JFXPanel
+        ↓
+Scene
+            ↓
+StackPane
+                ↓
+ImageView
+                Crop rectangle
+```
+
+or show a JavaFX dialog from Swing.
+
+If you're writing a new application, don't use Swing at all.
+
+---
+
+## Overall architecture
+
+A clean design looks like:
+
+```text
+CropDialog
+    |
+    +-- ImageView
+    +-- CropOverlay
+            |
+            +-- Rectangle
+            +-- 8 resize handles
+            +-- Mouse controller
+    |
+    +-- Crop button
+            |
+            +-- Convert view → image coordinates
+            +-- WritableImage crop
+            +-- Return cropped image
+```
+
+This separation keeps rendering, interaction, and pixel processing independent.
+
+Using a byte array or `ByteBuffer` for the original image data is reasonable if it fits your application's data flow, but the crop operation itself should work against a decoded JavaFX `Image` via its `PixelReader`. The crop rectangle should only represent the selected region visually; the actual pixel extraction should happen once, when the user confirms the crop.
+"
+
+Prompt:
+
+"
+For image uploads... use the raw byte vector data and then store that in the DB to then let javaFX-swing read the data to then render it correct ?
+"
+
+Answer:
+"
+
+Yes, that's a common and sensible design. In fact, it's essentially what your code is already doing.
+
+The data flow looks like this:
+
+```text
+User selects image
+        ↓
+Read file into byte[]
+        ↓
+(Optional) Crop dialog
+        ↓
+JavaFX Image created from byte[]
+        ↓
+User adjusts crop
+        ↓
+Cropped image encoded back to byte[]
+        ↓
+Store byte[] in database
+        ↓
+-------------------------------
+Later...
+        ↓
+Read byte[] from database
+        ↓
+new Image(new ByteArrayInputStream(bytes))
+        ↓
+Display in ImageView
+```
+
+### Upload
+
+When the user uploads an image:
+
+```java
+byte[] bytes = Files.readAllBytes(path);
+```
+
+or
+
+```java
+byte[] bytes = inputStream.readAllBytes();
+```
+
+Those bytes are the encoded image (JPEG, PNG, etc.), not raw RGB pixels.
+
+---
+
+### Display
+
+To display the image:
+
+```java
+Image image = new Image(
+    new ByteArrayInputStream(bytes)
+);
+
+ImageView view = new ImageView(image);
+```
+
+JavaFX decodes the JPEG/PNG internally.
+
+---
+
+### Crop
+
+When cropping:
+
+```java
+Image src = new Image(new ByteArrayInputStream(bytes));
+```
+
+The crop dialog operates on that decoded `Image`.
+
+After the crop:
+
+```java
+byte[] cropped = render(...);
+```
+
+You store the new `byte[]`.
+
+---
+
+### Database
+
+Most databases support binary columns:
+
+```text
+users
+------
+id
+username
+profile_image  BLOB
+```
+
+or
+
+```text
+posts
+------
+id
+title
+image_data BLOB
+```
+
+The application simply reads and writes the `byte[]`.
+
+---
+
+### Where Swing fits
+
+Swing is **not** involved in reading from the database or displaying the image.
+
+Its only role in your implementation is this conversion:
+
+```java
+WritableImage
+        ↓
+SwingFXUtils.fromFXImage(...)
+        ↓
+BufferedImage
+        ↓
+ImageIO.write(...)
+        ↓
+JPEG/PNG bytes
+```
+
+That's because `ImageIO` works with `BufferedImage`.
+
+---
+
+### One terminology note
+
+You mentioned "raw byte vector data." Strictly speaking, there are two kinds of image bytes:
+
+1. **Encoded bytes** (what you're storing)
+
+```text
+JPEG
+PNG
+GIF
+WebP
+```
+
+These are compressed image files represented as a `byte[]`.
+
+2. **Raw pixel bytes**
+
+```text
+RGBRGBRGB...
+ARGBARGB...
+```
+
+These are uncompressed pixel values.
+
+Your application stores **encoded image bytes**, which is almost always the right choice. They're much smaller, preserve the original format (or your chosen output format), and JavaFX can decode them directly with `new Image(new ByteArrayInputStream(bytes))`.
+
+So your overall architecture is sound: keep images as encoded `byte[]` in the database, decode them into a JavaFX `Image` when needed, let the user edit/crop them, then encode the result back into a new `byte[]` for storage.
 "
