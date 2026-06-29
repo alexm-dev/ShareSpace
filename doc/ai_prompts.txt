@@ -839,3 +839,113 @@ Put this in `src/main/resources/logback.xml` — Logback finds it automatically 
 
 That's the full loop: dependencies → code calls → `logback.xml` controls format, levels, and destinations without touching code.
 "
+
+
+---------------------------------------------
+SQL seeding
+---------------------------------------------
+
+"
+Prompt:
+
+-- ShareSpace reference data
+-- Still needs to be discussed to what reference data we want.
+-- Admin panel might be used to add reference data if we want as well.
+INSERT OR IGNORE INTO categories (name, description)
+VALUES
+  ('Electronics', 'Phones, TVs and other electronics.'),
+  ('Tools', 'Power tools and hand tools.'),
+  ('Gaming', 'Enter a world of adventure and exitement.'),
+  ('Pets', 'Show your animal friends some love.'),
+  ('Outdoor', 'Get into the great outdoors.'),
+  ('Fashion', 'Find your style.'),
+  ('Travel', 'Discover the world'),
+  ('Home', 'Transform your space into a work of art'),
+  ('Music', 'Turn it up'),
+  ('Designer Goods', 'Surround yourself with luxury'),
+  ('Plants', 'Transform your home into a oasis'),
+  ('Cooking', 'Cook up something special'),
+  ('Toys & Collectibles', 'Bring home a new friend'),
+  ('Driveables', 'Drive your mood'),
+  ('Real Estate', 'Find your new home'),
+  ('Books', 'Read to your desire'),
+  ('Health & Beauty', 'Take care of yourself'),
+  ('Jewelry & Watches', 'Luxury lifestyle'),
+  ('Sporting', 'Experience greatness'),
+  ('Baby', 'Baby supplies'),    
+  ('Everything else', 'Discover hidden gems');
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Selfphone', id FROM categories WHERE name = 'Electronics';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'TV', id FROM categories WHERE name = 'Electronics';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Laptop', id FROM categories WHERE name = 'Electronics';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Camera', id FROM categories WHERE name = 'Electronics';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Smart Watch', id FROM categories WHERE name = 'Electronics';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Home Electronics', id FROM categories WHERE name = 'Electronics';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Hammer', id FROM categories WHERE name = 'Tools';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Drill', id FROM categories WHERE name = 'Tools';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Console', id FROM categories WHERE name = 'Gaming';
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT 'Board Games', id FROM categories WHERE name = 'Gaming';
+-- Roles
+INSERT INTO roles (name) SELECT 'lender' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'lender');
+INSERT INTO roles (name) SELECT 'renter' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'renter');
+
+
+
+this is the seed.sql that sets the pre determined categories... how can I instert a sub_Categorry into the categories without having to code churn like INSERT INTO --- etc... WHERE ? etc...
+"
+
+Answer:
+"
+Good question — this is a classic case where a `VALUES` table source plus a join cleans up the repetition. Let me verify the exact syntax works in SQLite before I hand it to you.sqlite3 CLI isn't here, but Python ships with SQLite. Let me test through that.Confirmed on SQLite 3.45 — here's the deal.
+
+The pattern you want is to stop writing one `INSERT ... SELECT` per sub-category and instead write a single statement that joins a literal list of `(sub_category, category_name)` pairs against `categories` by name. The cleanest way that actually works in SQLite is a CTE:
+
+```sql
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+WITH v(name, category_name) AS (
+  VALUES
+    ('Selfphone',        'Electronics'),
+    ('TV',               'Electronics'),
+    ('Laptop',           'Electronics'),
+    ('Camera',           'Electronics'),
+    ('Smart Watch',      'Electronics'),
+    ('Home Electronics', 'Electronics'),
+    ('Hammer',           'Tools'),
+    ('Drill',            'Tools'),
+    ('Console',          'Gaming'),
+    ('Board Games',      'Gaming')
+)
+SELECT v.name, c.id
+FROM v
+JOIN categories c ON c.name = v.category_name;
+```
+
+Now adding a sub-category is just one more line in the `VALUES` list — no boilerplate. The `JOIN` resolves the FK by category name, so you never hardcode IDs.
+
+One gotcha worth flagging since it's the obvious thing to reach for: the inline `FROM (VALUES (...)) AS v(name, category_name)` form — naming columns in the table alias — is a **syntax error in SQLite** (works in Postgres, not here). That's why the CTE is the move; `WITH v(name, category_name) AS (...)` is where SQLite lets you name the columns.
+
+If you'd rather skip the CTE entirely, you can lean on SQLite's auto-named `column1`/`column2`:
+
+```sql
+INSERT OR IGNORE INTO sub_categories (name, category_id)
+SELECT v.column1, c.id
+FROM (VALUES
+  ('Selfphone', 'Electronics'),
+  ('Drill',     'Tools')
+) v
+JOIN categories c ON c.name = v.column2;
+```
+
+Functionally identical, just less self-documenting. I'd keep the CTE version in your `seed.sql` for readability.
+
+One note since this is seed data: `INSERT OR IGNORE` here only skips rows that violate a constraint, so if there's no `UNIQUE` on `sub_categories(name, category_id)` you'll get duplicates on re-run. If idempotent seeding matters to you, add a unique constraint on that pair (or on `name` if sub-category names are globally unique) so the `OR IGNORE` actually has something to ignore against.
+"

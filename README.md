@@ -3,24 +3,18 @@
 ## TODOs
 
 - [ ] UI
-    - Note: Admin Panel would need a dedicated UI panel
 
-- About Page
-- Profile Settings
-- Registration Page -> role assignemnt directly after
-- Create Listing -> redirect to Asset Page
-- My Listing
-- Rating Page
-- Asset Page -> redirect to Booking Page/Update Page
-    - Create Listing
+- Rating Page -> Submit rating (1-5 stars). 
+- Asset Page
     - Image upload
-- Asset Booking Page w/ Calendar (renter)
-- Asset Updates (lender)
-
+- Default Images
+- Category in MyListing
+- Renter to see Current Bookings in My Bookins.
+- Back Button
+- Real Name in settings / Bookins only (DB)
+- Sub Categories
 
 - Other: Dark Mode settings etc..
-
-Create listing tied to blank asset...
 
 TerminalApp.java is a temporary testing field to testout the business logic without any UI.
 After we implement a working UI, then we should remove the CLI package.
