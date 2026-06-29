@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT    NOT NULL,
     created_time  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status        TEXT,
+    first_name    TEXT,
+    last_name     TEXT,
     location_id   INTEGER REFERENCES locations(id) ON DELETE SET NULL
 );
 
@@ -62,6 +64,22 @@ CREATE TABLE IF NOT EXISTS assets (
     FOREIGN KEY (owner_id)          REFERENCES users(id)          ON DELETE CASCADE,
     FOREIGN KEY (sub_category_id)   REFERENCES sub_categories(id) ON DELETE RESTRICT,
     FOREIGN KEY (asset_location_id) REFERENCES locations(id)      ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS asset_images (
+    asset_id   INTEGER PRIMARY KEY,
+    image_data BLOB    NOT NULL,
+    mime_type  TEXT,
+
+    FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS user_images (
+    user_id    INTEGER PRIMARY KEY,
+    image_data BLOB    NOT NULL,
+    mime_type  TEXT,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
