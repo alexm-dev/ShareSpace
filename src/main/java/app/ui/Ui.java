@@ -332,15 +332,20 @@ public final class Ui {
         return sp;
     }
 
-    // private method for building a page
-    // is called by buildPage()
-    // manages building a page and combining header footer and content
     private static final double MENU_WIDTH = 200;
-    private static StackPane buildPagerInternal(Node... children) {
+    /**
+     * internal method for building a page
+     * only accessed in Ui.java
+     * builds a page with header, drawer menu, content, footer
+     *
+     * @param children the page content
+     * @return the page as a StackPane object
+     */
+    private static StackPane buildPagerInternal(Node... children)/* 1 usage */ {
         // logo with event
         Label logo = bold("ShareSpace®", 19);
         logo.setStyle("-fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 20;");
-        logo.setOnMouseClicked(event -> ShareS.showStartPage()); // always has ShareSpace top left wit event
+        logo.setOnMouseClicked(event -> ShareS.showStartPage());
 
         // create sliding menuPanel
         VBox menuPanel = new VBox(10);
@@ -354,24 +359,22 @@ public final class Ui {
         //create transition for menuPanel
         TranslateTransition tt = new TranslateTransition(Duration.millis(500), menuPanel);
 
-        // content for the menuPanel
-        // ADD NEW BUTTONS HERE
-        // don't forget to add to panel (method below)
-        Button login = button(
-                "Login/Sign up",
+        // buttons for the menuPanel
+        Button about = button(
+                "About us",
                 13,
                 "-fx-background-color: white;");
-        login.setOnAction(event -> {
+        about.setOnAction(event -> {
             closeMenu(tt);
-            ShareS.showLoginPage();
+            ShareS.showAboutPage();
         });
-        Button profile = button(
-                "Profile/My listings",
+        Button bookings = button(
+                "Bookings",
                 13,
                 "-fx-background-color: white;");
-        profile.setOnAction(event -> {
-                closeMenu(tt);
-                ShareS.showProfilePage();
+        bookings.setOnAction(event -> {
+            closeMenu(tt);
+            ShareS.showBookingPage();
         });
         Button catalog = button(
                 "Catalog",
@@ -381,29 +384,21 @@ public final class Ui {
             closeMenu(tt);
             ShareS.showCatalogPage();
         });
-        Button bookings = button(
-                "My Bookings",
+        Button login = button(
+                "Login/Sign up",
                 13,
                 "-fx-background-color: white;");
-        bookings.setOnAction(event -> {
+        login.setOnAction(event -> {
             closeMenu(tt);
-            ShareS.showBookingPage();
+            ShareS.showLoginPage();
         });
-        Button ratings = button(
-                "My Ratings)",
+        Button profile = button(
+                "Profile",
                 13,
                 "-fx-background-color: white;");
-        ratings.setOnAction(event -> {
+        profile.setOnAction(event -> {
             closeMenu(tt);
-            ShareS.showRatingPage();
-        });
-        Button about = button(
-                "About us",
-                13,
-                "-fx-background-color: white;");
-        about.setOnAction(event -> {
-            closeMenu(tt);
-            ShareS.showAboutPage();
+            ShareS.showProfilePage();
         });
         Button settings = button(
                 "Settings",
@@ -413,6 +408,15 @@ public final class Ui {
             closeMenu(tt);
             ShareS.showProfileSettingsPage();
         });
+        Button ratings = button(
+                "My Ratings)",
+                13,
+                "-fx-background-color: white;");
+        ratings.setOnAction(event -> {
+            closeMenu(tt);
+            ShareS.showRatingPage();
+        });
+
         Button logout = button(
                 "Logout",
                 13,
@@ -424,25 +428,21 @@ public final class Ui {
         });
 
 
-
-
         // toggleMenu button inside menuPanel
         Button toggleOff = getButton(tt);
         toggleOff.setOnAction(event -> closeMenu(tt));
         menuPanel.getChildren().add(toggleOff);
 
-        // TODO: change visibility for buttons/rework the following code!
-        // add all buttons to menuPanel
-        if (ShareS.session.getActiveUser() == null)/* not logged in */ {
-            menuPanel.getChildren().add(login);
-        } else {
-            menuPanel.getChildren().add(profile);
+        boolean isLoggedIn = ShareS.session.isLoggedIn();
+
+        // menuPanel for logged-in user
+        if (isLoggedIn) {
+            menuPanel.getChildren().addAll(profile, catalog, bookings, ratings, settings, about, logout);
         }
-        // if new button was created, add here
-        menuPanel.getChildren().addAll(catalog, bookings, ratings, about, settings);
-        // if logged in show logout else not
-        if (ShareS.session.getActiveUser() != null) {
-            menuPanel.getChildren().add(logout);
+
+        //menuPanel for logged-out user / guest
+        if (!isLoggedIn) {
+            menuPanel.getChildren().addAll(login, catalog, about);
         }
 
 
@@ -507,9 +507,14 @@ public final class Ui {
         tt.play();
     }
 
-    // public method other classes can use for building a page
-    //builds a page with header, drawer menu, children (content) and footer
-    static StackPane buildPage(Node... children) {
+    /**
+     * public method for usage in every ...Page class
+     * adds header, drawer and footer
+     *
+     * @param children the page content
+     * @return the page as a StackPane object
+     */
+    static StackPane buildPage(Node... children)/* 21 usage */ {
         return buildPagerInternal(children);
     }
 }
