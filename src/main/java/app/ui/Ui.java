@@ -409,7 +409,7 @@ public final class Ui {
             ShareS.showProfileSettingsPage();
         });
         Button ratings = button(
-                "My Ratings)",
+                "Ratings",
                 13,
                 "-fx-background-color: white;");
         ratings.setOnAction(event -> {
