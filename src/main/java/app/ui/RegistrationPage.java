@@ -17,7 +17,7 @@ public class RegistrationPage {
 
         List<Role> allRoles = ShareS.userService.getAllRoles();
         final int renterID = allRoles.stream().filter(r -> r.getName().equals("renter")).findFirst().get().getId();
-        final int lenderId =  allRoles.stream().filter(r -> r.getName().equals("lender")).findFirst().get().getId();
+        final int lenderId = allRoles.stream().filter(r -> r.getName().equals("lender")).findFirst().get().getId();
 
         Button back = Ui.button(
                 "← Back",
@@ -72,12 +72,21 @@ public class RegistrationPage {
                 "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
         registerBtn.setMaxWidth(Double.MAX_VALUE);
         registerBtn.setOnAction(event -> {
-            if (username.getText().isBlank()) {error.setText("Username can't be blank."); return;}
+            if (username.getText().isBlank()) {
+                error.setText("Username can't be blank.");
+                return;
+            }
 
             RadioButton selected = (RadioButton) group.getSelectedToggle();
-            if (selected == null) {error.setText("Please select a role."); return;}
+            if (selected == null) {
+                error.setText("Please select a role.");
+                return;
+            }
 
-            if (email.getText().isBlank()) {error.setText("Email can't be blank."); return;}
+            if (email.getText().isBlank()) {
+                error.setText("Email can't be blank.");
+                return;
+            }
 
             if (pw.getText().isBlank()) {
                 error.setText("Password can't be blank.");
@@ -100,11 +109,35 @@ public class RegistrationPage {
                         ShareS.userService.assignRoleToUser(user.getId(), lenderId);
                         break;
                 }
-                ShareS.showProfileSettingsPage();
+                ShareS.showStartPage();
             } else {
                 error.setText("Registration failed.");
                 pw.clear();
             }
+        });
+
+        // password hint ✓ ✗
+        Label pwAuthLength = Ui.light("✗ At least 8 character", 11);
+        Label pwAuthUpper = Ui.light("✗ At least one uppercase letter", 11);
+        Label pwAuthLower = Ui.light("✗ At least one lowercase letter", 11);
+        Label pwAuthSymbol = Ui.light("✗ At least one symbol", 11);
+        Label pwAuthDigit = Ui.light("✗ At least one digit", 11);
+
+        pwAuthLength.setStyle("-fx-text-fill: gray;");
+        pwAuthUpper.setStyle("-fx-text-fill: gray;");
+        pwAuthLower.setStyle("-fx-text-fill: gray;");
+        pwAuthSymbol.setStyle("-fx-text-fill: gray;");
+        pwAuthDigit.setStyle("-fx-text-fill: gray;");
+
+        VBox pwAuth = new VBox(2, pwAuthLength, pwAuthUpper, pwAuthLower, pwAuthSymbol, pwAuthDigit);
+
+        // listener for pw textfield live updates hints
+        pw.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateRule(pwAuthLength, newValue.length() >= 8, "At least 8 character");
+            updateRule(pwAuthUpper, newValue.chars().anyMatch(Character::isUpperCase), "At least one uppercase letter");
+            updateRule(pwAuthLower, newValue.chars().anyMatch(Character::isLowerCase), "At least one lowercase letter");
+            updateRule(pwAuthSymbol, newValue.chars().anyMatch(c -> !Character.isLetterOrDigit(c) && !Character.isWhitespace(c)), "At least one symbol");
+            updateRule(pwAuthDigit, newValue.chars().anyMatch(Character::isDigit), "At least one digit");
         });
 
 
@@ -114,7 +147,7 @@ public class RegistrationPage {
                 Ui.light("Username", 11), username,
                 Ui.light("Roles", 11), roles,
                 Ui.light("Email address", 11), email,
-                Ui.light("Password", 11), pw,
+                Ui.light("Password", 11), pw, pwAuth,
                 error,
                 registerBtn);
         register.setMaxWidth(360);
@@ -135,6 +168,18 @@ public class RegistrationPage {
         root.setFillWidth(true);
         root.setPadding(new Insets(16, 60, 40, 60));
         root.setStyle("-fx-background-color: white;");
+
         return root;
     }
+
+    private void updateRule(Label label, boolean isFulfilled, String updatedText) {
+        if (isFulfilled) {
+            label.setText("✓ " + updatedText);
+            label.setStyle("-fx-text-fill: green;");
+        } else {
+            label.setText("✗ " +  updatedText);
+            label.setStyle("-fx-text-fill: gray;");
+        }
+    }
+
 }
