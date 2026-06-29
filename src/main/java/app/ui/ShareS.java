@@ -59,9 +59,9 @@ public class ShareS extends Application {
     public static void showLoginPage()   { showPage(new LoginPage().build(), true); }
     public static void showBookingPage() { showPage(new BookingPage().build(), false); }
     public static void showRegistrationPage() { showPage(new RegistrationPage().build(), true); }
-    public static void showProfileSettingsPage() { showPage2(new ProfileSettingsPage().build(), true); }
-    public static void showAboutPage() { showPage2(new AboutPage().build(), false); }
-    public static void showRatingPage() { showPage2(new RatingPage().build(), false); }
+    public static void showProfileSettingsPage() { showPage2(new ProfileSettingsPage().build()); }
+    public static void showAboutPage() { showPage2(new AboutPage().build()); }
+    public static void showRatingPage() { showPage2(new RatingPage().build()); }
 
     public static void showCategoryPage(Category category) { showPage(new CategoryPage(category).build(), false); }
     public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build(), false); }
@@ -82,7 +82,10 @@ public class ShareS extends Application {
         primaryStage.show();
     }
 
-    private static void showPage2(StackPane root, boolean fitHeight) {
+    // responsible for showing page in UI
+    // TODO: change all pages that use showPAge to showPage2
+    // TODO: give better fitting name
+    private static void showPage2(StackPane root) {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
