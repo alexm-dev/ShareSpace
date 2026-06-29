@@ -12,6 +12,8 @@ public class User {
     private String passwordHash;
     private LocalDateTime createdTime;
     private String status;
+    private String firstName;
+    private String lastName;
     private Integer locationId;
 
     /**
@@ -42,7 +44,20 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public LocalDateTime getCreatedTime() { return createdTime; }
     public String getStatus() { return status; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
     public Integer getLocationId() { return locationId; }
+
+    /**
+     * The user's real name ("First Last"), shown only inside a booking between
+     * two users. Returns null if the name has not been filled in yet.
+     */
+    public String getFullName() {
+        if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank()) {
+            return null;
+        }
+        return firstName.trim() + " " + lastName.trim();
+    }
 
     // Setters
     public void setId(int id) { this.id = id; }
@@ -50,5 +65,7 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public void setStatus(String status) { this.status = status; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
     public void setLocationId(Integer locationId) { this.locationId = locationId; }
 }
