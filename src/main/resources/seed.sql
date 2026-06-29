@@ -41,6 +41,7 @@ WITH v(name, category_name) AS (
     ('Saw',              'Tools'),
     ('Lawn Mower',       'Tools'),
     ('Screwdriver',      'Tools'),
+)
 SELECT v.name, c.id
 FROM v
 JOIN categories c ON c.name = v.category_name;
