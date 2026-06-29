@@ -20,7 +20,8 @@ public class UserDAO extends BaseDAO<User, Integer> {
 
     /** The columns to select for findById and findAll, in mapRow order. */
     private static final String[] COLUMNS =
-        { "id", "username", "email", "password_hash", "created_time", "status", "location_id" };
+        { "id", "username", "email", "password_hash", "created_time", "status",
+          "first_name", "last_name", "location_id" };
 
     /** The name of the database table this DAO manages. */
     @Override
@@ -46,6 +47,8 @@ public class UserDAO extends BaseDAO<User, Integer> {
             LocalDateTime.parse(rs.getString("created_time"), FMT),
             rs.getString("status")
         );
+        user.setFirstName(rs.getString("first_name"));
+        user.setLastName(rs.getString("last_name"));
         int locationId = rs.getInt("location_id");
         if (!rs.wasNull()) {
             user.setLocationId(locationId);
@@ -88,18 +91,21 @@ public class UserDAO extends BaseDAO<User, Integer> {
      */
     @Override
     public boolean update(User user) {
-        String sql = "UPDATE users SET username = ?, email = ?, password_hash = ?, status = ?, location_id = ? WHERE id = ?";
+        String sql = "UPDATE users SET username = ?, email = ?, password_hash = ?, status = ?, "
+                   + "first_name = ?, last_name = ?, location_id = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getPasswordHash());
             stmt.setString(4, user.getStatus());
+            stmt.setString(5, user.getFirstName());
+            stmt.setString(6, user.getLastName());
             if (user.getLocationId() != null) {
-                stmt.setInt(5, user.getLocationId());
+                stmt.setInt(7, user.getLocationId());
             } else {
-                stmt.setNull(5, java.sql.Types.INTEGER);
+                stmt.setNull(7, java.sql.Types.INTEGER);
             }
-            stmt.setInt(6, user.getId());
+            stmt.setInt(8, user.getId());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update user", e);
@@ -110,7 +116,7 @@ public class UserDAO extends BaseDAO<User, Integer> {
      * Finds a user by email.
      */
     public User findByEmail(String email) {
-        String sql = "SELECT id, username, email, password_hash, created_time, status, location_id FROM users WHERE email = ?";
+        String sql = "SELECT id, username, email, password_hash, created_time, status, first_name, last_name, location_id FROM users WHERE email = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -129,7 +135,7 @@ public class UserDAO extends BaseDAO<User, Integer> {
      * @return The user with the given username, or null if not found.
      */
     public User findByUsername(String username) {
-        String sql = "SELECT id, username, email, password_hash, created_time, status, location_id FROM users WHERE username = ?";
+        String sql = "SELECT id, username, email, password_hash, created_time, status, first_name, last_name, location_id FROM users WHERE username = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet rs = stmt.executeQuery()) {
