@@ -12,7 +12,6 @@ import java.sql.SQLException;
  */
 public class ImageDAO {
 
-    /** The database connection shared by all DAO operations. */
     private final Connection conn;
     private final String table;
     private final String keyColumn;
