@@ -513,8 +513,7 @@ public final class Ui {
         // toggleMenu button in header
         Button toggleOn = getButton(tt);
 
-        // heading is logo + toggleOn button
-        HBox heading = new HBox(20, logo, spacer(), toggleOn);
+        HBox heading = new HBox(20, logo, spacer(), getBackButton(), toggleOn);
         heading.setAlignment(Pos.CENTER_LEFT);
         heading.setPadding(new Insets(16, 0, 16, 0));
         heading.setStyle("-fx-border-color: transparent transparent #e5e5e5 transparent; -fx-border-width: 0 0 1 0;");
@@ -560,6 +559,24 @@ public final class Ui {
             tt.play();
         });
         return toggle;
+    }
+
+    private static Button getBackButton() {
+        SVGPath icon = new SVGPath();
+        icon.setContent("M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z");
+        icon.setFill(Color.web("black"));
+
+        Button back = new Button();
+        back.setGraphic(icon);
+        back.setStyle("-fx-background-color: white; -fx-background-radius: 20;"
+                + " -fx-cursor: hand; -fx-min-width: 30px; -fx-min-height: 30px;"
+                + " -fx-padding: 6;");
+        back.setOnAction(event -> ShareS.goBack());
+
+        boolean canGoBack = ShareS.canGoBack();
+        back.setVisible(canGoBack);
+        back.setManaged(canGoBack);
+        return back;
     }
 
     // event for closing the drawer menu

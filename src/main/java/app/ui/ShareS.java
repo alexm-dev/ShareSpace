@@ -17,6 +17,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public class ShareS extends Application {
 
     public static Stage primaryStage;
@@ -53,23 +56,47 @@ public class ShareS extends Application {
         showStartPage();
     }
 
+    public static void showLoginPage()                           { go("login", () -> showLogin(new LoginPage().build())); }
+    public static void showRegistrationPage()                    { go("register", () -> showLogin(new RegistrationPage().build())); }
+    public static void showStartPage()                           { go("start", () -> showPage(new ShareSpacePage().build())); }
+    public static void showCatalogPage()                         { go("catalog", () -> showPage(new CatalogPage().build())); }
+    public static void showProfilePage()                         { go("profile", () -> showPage(new ProfilePage().build())); }
+    public static void showUserProfilePage(app.model.User user)  { go("profile:" + user.getId(), () -> showPage(new ProfilePage(user).build())); }
+    public static void showBookingPage()                         { go("booking", () -> showPage(new BookingPage().build())); }
+    public static void showProfileSettingsPage()                 { go("settings", () -> showPage(new ProfileSettingsPage().build())); }
+    public static void showAboutPage()                           { go("about", () -> showPage(new AboutPage().build())); }
+    public static void showRatingPage()                          { go("rating", () -> showPage(new RatingPage().build())); }
+    public static void showCategoryPage(Category category)       { go("category:" + category.getId(), () -> showPage(new CategoryPage(category).build())); }
+    public static void showListingsPage(SubCategory subCategory) { go("listings:" + subCategory.getId(), () -> showPage(new ListingsPage(subCategory).build())); }
+    public static void showListingDetailPage(Asset asset)        { go("detail:" + asset.getId(), () -> showPage(new ListingDetailPage(asset).build())); }
+    public static void showBookingFlowPage(Asset asset)          { go("bookflow:" + asset.getId(), () -> showPage(new BookingFlowPage(asset).build())); }
+    public static void showCreateListingPage()                   { go("create", () -> showPage(new CreateListingPage(null).build())); }
+    public static void showEditListingPage(Asset asset)          { go("edit:" + asset.getId(), () -> showPage(new CreateListingPage(asset).build())); }
 
-    public static void showLoginPage()                           { showLogin(new LoginPage().build()); }
-    public static void showRegistrationPage()                    { showLogin(new RegistrationPage().build()); }
-    public static void showStartPage()                           { showPage(new ShareSpacePage().build()); }
-    public static void showCatalogPage()                         { showPage(new CatalogPage().build()); }
-    public static void showProfilePage()                         { showPage(new ProfilePage().build()); }
-    public static void showUserProfilePage(app.model.User user)  { showPage(new ProfilePage(user).build()); }
-    public static void showBookingPage()                         { showPage(new BookingPage().build()); }
-    public static void showProfileSettingsPage()                 { showPage(new ProfileSettingsPage().build()); }
-    public static void showAboutPage()                           { showPage(new AboutPage().build()); }
-    public static void showRatingPage()                          { showPage(new RatingPage().build()); }
-    public static void showCategoryPage(Category category)       { showPage(new CategoryPage(category).build()); }
-    public static void showListingsPage(SubCategory subCategory) { showPage(new ListingsPage(subCategory).build()); }
-    public static void showListingDetailPage(Asset asset)        { showPage(new ListingDetailPage(asset).build()); }
-    public static void showBookingFlowPage(Asset asset)          { showPage(new BookingFlowPage(asset).build()); }
-    public static void showCreateListingPage()                   { showPage(new CreateListingPage(null).build()); }
-    public static void showEditListingPage(Asset asset)          { showPage(new CreateListingPage(asset).build()); }
+    // Navigation to manage page history
+    private record Nav(String key, Runnable render) {}
+    private static final Deque<Nav> backStack = new ArrayDeque<>();
+    private static Nav current;
+
+    private static void go(String key, Runnable render) {
+        if (current != null && !current.key().equals(key)) {
+            backStack.push(current);
+        }
+        current = new Nav(key, render);
+        render.run();
+    }
+
+    public static void goBack() {
+        if (backStack.isEmpty()) {
+            return;
+        }
+        current = backStack.pop();
+        current.render().run();
+    }
+
+    public static boolean canGoBack() {
+        return !backStack.isEmpty();
+    }
 
 
     // only used for login and register
