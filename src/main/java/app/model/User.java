@@ -1,5 +1,7 @@
 package app.model;
 
+import app.model.enums.UserStatus;
+
 import java.time.LocalDateTime;
 
 /**
@@ -11,7 +13,7 @@ public class User {
     private String email;
     private String passwordHash;
     private LocalDateTime createdTime;
-    private String status;
+    private UserStatus status;
     private String firstName;
     private String lastName;
     private Integer locationId;
@@ -19,7 +21,7 @@ public class User {
     /**
      * Constructor to load from the DB.
      */
-    public User(int id, String username, String email, String passwordHash, LocalDateTime createdTime, String status) {
+    public User(int id, String username, String email, String passwordHash, LocalDateTime createdTime, UserStatus status) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -43,7 +45,7 @@ public class User {
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
     public LocalDateTime getCreatedTime() { return createdTime; }
-    public String getStatus() { return status; }
+    public UserStatus getStatus() { return status; }
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public Integer getLocationId() { return locationId; }
@@ -64,7 +66,7 @@ public class User {
     public void setUsername(String username) { this.username = username; }
     public void setEmail(String email) { this.email = email; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-    public void setStatus(String status) { this.status = status; }
+    public void setStatus(UserStatus status) { this.status = status; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
     public void setLocationId(Integer locationId) { this.locationId = locationId; }

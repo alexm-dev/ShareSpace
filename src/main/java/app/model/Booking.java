@@ -51,52 +51,18 @@ public class Booking {
     }
 
     // Getters
-    public int getId() {
-        return id;
-    }
-
-    public int getAssetId() {
-        return assetId;
-    }
-
-    public int getRenterId() {
-        return renterId;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public BookingStatus getStatus() {
-        return status;
-    }
-
-    public double getTotalCost() {
-        return totalCost;
-    }
-
-    public LocalDateTime getCreatedTime() {
-        return createdTime;
-    }
-
-    public LocalDateTime getUpdatedTime() {
-        return updatedTime;
-    }
+    public int getId() { return id; }
+    public int getAssetId() { return assetId; }
+    public int getRenterId() { return renterId; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public BookingStatus getStatus() { return status; }
+    public double getTotalCost() { return totalCost; }
+    public LocalDateTime getCreatedTime() { return createdTime; }
+    public LocalDateTime getUpdatedTime() { return updatedTime; }
 
     // Setters
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setStatus(BookingStatus status) {
-        this.status = status;
-    }
-
-    public void setTotalCost(double totalCost) {
-        this.totalCost = totalCost;
-    }
+    public void setId(int id) { this.id = id; }
+    public void setStatus(BookingStatus status) { this.status = status; }
+    public void setTotalCost(double totalCost) { this.totalCost = totalCost; }
 }
