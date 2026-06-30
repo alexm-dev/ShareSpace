@@ -86,7 +86,6 @@ public class ShareS extends Application {
         Scene scene = new Scene(scrollPane);
         primaryStage.setScene(scene);
         primaryStage.show();
-        primaryStage.setAlwaysOnTop(true);
     }
 
     // responsible for showing page in UI
@@ -101,7 +100,6 @@ public class ShareS extends Application {
         Scene scene = new Scene(scrollPane);
         primaryStage.setScene(scene);
         primaryStage.show();
-        primaryStage.setAlwaysOnTop(true);
     }
 
 }

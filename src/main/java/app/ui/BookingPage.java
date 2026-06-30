@@ -4,6 +4,7 @@ import app.model.Asset;
 import app.model.Booking;
 import app.model.User;
 import app.model.enums.BookingStatus;
+import app.util.InvoiceWriter;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,6 +14,9 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.*;
 
+import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,26 +181,23 @@ public class BookingPage {
 
             String itemName = asset != null ? asset.getModel() : "#" + booking.getAssetId();
 
-            // the renter and the owner are the two parties of this booking, so the
-            // renter sees the owner's real name here (fallback to username)
-            String ownerName = "#" + booking.getAssetId();
-            if (asset != null) {
-                User owner = ShareS.userService.findById(asset.getOwnerId());
-                if (owner != null) {
-                    ownerName = owner.getFullName() != null ? owner.getFullName() : owner.getUsername();
-                }
-            }
+            // the renter and the owner are the two parties of this booking
+            User owner = asset != null ? ShareS.userService.findById(asset.getOwnerId()) : null;
 
-            addRenterRow(g, i + 1, booking, itemName, ownerName, asset);
+            addRenterRow(g, i + 1, booking, itemName, owner, asset);
         }
 
         return g;
     }
 
     private void addRenterRow(GridPane g, int row, Booking booking,
-                              String itemName, String ownerName, Asset asset) {
+                              String itemName, User owner, Asset asset) {
         BookingStatus status = booking.getStatus();
         boolean active = status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
+
+        // the renter sees the owner's real name here (fallback to username)
+        String ownerName = owner == null ? "#" + booking.getAssetId()
+                : (owner.getFullName() != null ? owner.getFullName() : owner.getUsername());
 
         Region bg = new Region();
         bg.setMinHeight(48);
@@ -216,9 +217,8 @@ public class BookingPage {
 
         int bookingId = booking.getId();
 
-        //TODO: Add invoice template
-        // Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Show invoice",
-        //         () -> showInvoice(booking, itemName, "Owner", ownerName));
+        Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
+                () -> generateInvoice(booking, asset, ShareS.session.getActiveUser(), owner));
         Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
                 asset != null ? () -> ShareS.showListingDetailPage(asset) : null);
         viewBtn.setDisable(asset == null);
@@ -226,7 +226,7 @@ public class BookingPage {
                 active ? () -> { ShareS.bookingService.cancelBooking(bookingId); ShareS.showBookingPage(); } : null);
         cancelBtn.setDisable(!active);
 
-        HBox actions = new HBox(6, viewBtn, cancelBtn);
+        HBox actions = new HBox(6, invoiceBtn, viewBtn, cancelBtn);
         actions.setAlignment(Pos.CENTER_RIGHT);
         g.add(actions, 6, row);
     }
@@ -265,28 +265,32 @@ public class BookingPage {
         Button profileBtn = Ui.iconButton(IC_PERSON, "#d9d9d9", "#555555", "Renter profile",
                 renter != null ? () -> ShareS.showUserProfilePage(renter) : null);
         profileBtn.setDisable(renter == null);
-        // Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Show invoice",
-        //         () -> showInvoice(booking, itemName, "Renter", renterName));
+        Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
+                () -> generateInvoice(booking, asset, renter, ShareS.session.getActiveUser()));
         Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
                 asset != null ? () -> ShareS.showListingDetailPage(asset) : null);
         viewBtn.setDisable(asset == null);
 
-        HBox actions = new HBox(6, profileBtn, viewBtn, acceptBtn, declineBtn);
+        HBox actions = new HBox(6, profileBtn, invoiceBtn, viewBtn, acceptBtn, declineBtn);
         actions.setAlignment(Pos.CENTER_RIGHT);
         g.add(actions, 6, row);
     }
 
-    // /** Simple invoice popup with the booking's key details. */
-    // private void showInvoice(Booking booking, String itemName, String partyLabel, String partyName) {
-    //     String body = "Item: " + itemName + "\n"
-    //             + partyLabel + ": " + partyName + "\n"
-    //             + "Period: " + booking.getStartTime().format(DATE_FMT)
-    //             + " - " + booking.getEndTime().format(DATE_FMT) + "\n"
-    //             + "Status: " + booking.getStatus().getDbValue() + "\n"
-    //             + "Total: €" + String.format("%.2f", booking.getTotalCost());
-    //     Alert alert = new Alert(Alert.AlertType.INFORMATION, body);
-    //     alert.setTitle("Invoice");
-    //     alert.setHeaderText("Booking #" + booking.getId());
-    //     alert.showAndWait();
-    // }
+    /** Writes a text invoice for the booking next to the app, then opens it. */
+    private void generateInvoice(Booking booking, Asset asset, User renter, User owner) {
+        try {
+            String categoryPath = asset != null
+                    ? ShareS.catalogService.getCategoryPath(asset.getSubCategoryId()) : "";
+            File file = InvoiceWriter.write(booking, asset, renter, owner, categoryPath);
+            try {
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(file);
+                }
+            } catch (Exception ignore) {
+                // the invoice file is written; opening it in an editor is best-effort
+            }
+        } catch (IOException ex) {
+            new Alert(Alert.AlertType.ERROR, "Could not write the invoice file.").showAndWait();
+        }
+    }
 }

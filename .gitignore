@@ -1,4 +1,4 @@
-# --- Build output ---
+# Build output
 target/
 dist/
 out/
@@ -9,32 +9,35 @@ logs/
 *.ear
 dependency-reduced-pom.xml
 
-# --- Log Output ---
+# Log Output
 logs/
 
-# --- Submission artifact (locally generated) ---
+# Submission artifact (locally generated)
 /submission
 
-# --- SQLite runtime DB (data is local per-machine, schema lives in src/main/resources) ---
+# SQLite runtime DB (data is local per-machine)
 /database
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
 
-# --- IDE: IntelliJ ---
+# Generated rental invoices
+/invoices
+
+# IDE: IntelliJ
 .idea/
 *.iml
 
-# --- IDE: Eclipse ---
+# IDE: Eclipse
 .classpath
 .project
 .settings/
 
-# --- IDE: VS Code ---
+# IDE: VS Code
 .vscode/
 
-# --- OS / editor noise ---
+# OS / editor noise
 .DS_Store
 *.tmp
 *.swp
