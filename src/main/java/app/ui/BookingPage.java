@@ -14,7 +14,6 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.*;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
@@ -285,13 +284,7 @@ public class BookingPage {
             String categoryPath = asset != null
                     ? ShareS.catalogService.getCategoryPath(asset.getSubCategoryId()) : "";
             File file = InvoiceWriter.write(booking, asset, renter, owner, categoryPath);
-            try {
-                if (Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop().open(file);
-                }
-            } catch (Exception ignore) {
-                // the invoice file is written; opening it in an editor is best-effort
-            }
+            new Alert(Alert.AlertType.INFORMATION, "Invoice saved to " + file.getPath()).showAndWait();
         } catch (IOException ex) {
             new Alert(Alert.AlertType.ERROR, "Could not write the invoice file.").showAndWait();
         }
