@@ -1,36 +1,17 @@
 package app.ui;
 
+import app.model.Asset;
 import app.model.Location;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.geometry.Side;
+import javafx.geometry.*;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.OverrunStyle;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.*;
 import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
@@ -66,12 +47,18 @@ public final class Ui {
         return label(text, sizePx, "-fx-text-fill: #888888;");
     }
 
+    private static void roundedClip(Region r) {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(r.widthProperty());
+        clip.heightProperty().bind(r.heightProperty());
+        clip.setArcWidth(16);
+        clip.setArcHeight(16);
+        r.setClip(clip);
+    }
+
     static Region image(double aspectRatio) {
-        Region r = new Region();
+        AspectPane r = new AspectPane(aspectRatio);
         r.setStyle("-fx-background-color: #d9d9d9; -fx-background-radius: 8;");
-        r.setMaxWidth(Double.MAX_VALUE);
-        r.setMinHeight(Region.USE_PREF_SIZE);
-        r.prefHeightProperty().bind(r.widthProperty().multiply(aspectRatio));
         return r;
     }
 
@@ -81,18 +68,9 @@ public final class Ui {
             return image(aspectRatio);
         }
 
-        Region r = new Region();
-        r.setMaxWidth(Double.MAX_VALUE);
-        r.setMinHeight(Region.USE_PREF_SIZE);
-        r.prefHeightProperty().bind(r.widthProperty().multiply(aspectRatio));
+        AspectPane r = new AspectPane(aspectRatio);
         r.setBackground(new Background(coverBackground(img)));
-
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(r.widthProperty());
-        clip.heightProperty().bind(r.heightProperty());
-        clip.setArcWidth(16);
-        clip.setArcHeight(16);
-        r.setClip(clip);
+        roundedClip(r);
         return r;
     }
 
@@ -124,17 +102,9 @@ public final class Ui {
         Region front = new Region();
         front.setBackground(new Background(backgroundImage(img, true)));
 
-        StackPane pane = new StackPane(back, front);
-        pane.setMaxWidth(Double.MAX_VALUE);
-        pane.setMinHeight(Region.USE_PREF_SIZE);
-        pane.prefHeightProperty().bind(pane.widthProperty().multiply(aspectRatio));
-
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(pane.widthProperty());
-        clip.heightProperty().bind(pane.heightProperty());
-        clip.setArcWidth(16);
-        clip.setArcHeight(16);
-        pane.setClip(clip);
+        AspectPane pane = new AspectPane(aspectRatio);
+        pane.getChildren().addAll(back, front);
+        roundedClip(pane);
         return pane;
     }
 
@@ -196,9 +166,9 @@ public final class Ui {
             pane.setBackground(new Background(coverBackground(img)));
         } else {
             pane.setStyle("-fx-background-color: #d9d9d9;");
-            Label glyph = new Label("+");
-            glyph.setStyle("-fx-font-size: " + (diameter * 0.4) + "px; -fx-text-fill: #9e9e9e;");
-            pane.getChildren().add(glyph);
+            if (onClick != null) {
+                pane.getChildren().add(plusIcon(diameter * 0.4, "#9e9e9e"));
+            }
         }
 
         pane.setClip(new Circle(diameter / 2, diameter / 2, diameter / 2));
@@ -226,7 +196,16 @@ public final class Ui {
         menu.show(anchor, Side.BOTTOM, 0, 0);
     }
 
-    /** One-line human-readable address, in the shape the listing pages display. */
+    static String discountText(Asset asset) {
+        if (asset.getDiscountPercentage() <= 0) {
+            return null;
+        }
+        String when = asset.getDiscountAfterDays() <= 0
+                ? "from day 1"
+                : "after " + asset.getDiscountAfterDays() + " days";
+        return String.format("%.0f%% off %s", asset.getDiscountPercentage(), when);
+    }
+
     static String formatLocation(Location l) {
         StringBuilder sb = new StringBuilder();
         if (l.getStreetAddress() != null && !l.getStreetAddress().isBlank()) {
@@ -359,13 +338,21 @@ public final class Ui {
         return box;
     }
 
+    private static SVGPath plusIcon(double sizePx, String color) {
+        SVGPath plus = new SVGPath();
+        plus.setContent("M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z");
+        plus.setFill(Color.web(color));
+        double scale = sizePx / 24.0;
+        plus.setScaleX(scale);
+        plus.setScaleY(scale);
+        return plus;
+    }
+
     static VBox addTile(String name, double aspectRatio, Runnable onClick) {
         HBox head = new HBox(6, bold(name, 13));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
-        Label plus = new Label("+");
-        plus.setStyle("-fx-font-size: 64px; -fx-font-weight: bold; -fx-text-fill: #9e9e9e;");
-        StackPane imageStack = new StackPane(image(aspectRatio), plus);
+        StackPane imageStack = new StackPane(image(aspectRatio), plusIcon(64, "#9e9e9e"));
 
         VBox box = new VBox(6, head, imageStack);
         box.setMaxWidth(Double.MAX_VALUE);

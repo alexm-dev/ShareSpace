@@ -217,6 +217,9 @@ public class BookingPage {
 
         int bookingId = booking.getId();
 
+        Button profileBtn = Ui.iconButton(IC_PERSON, "#d9d9d9", "#555555", "Owner profile",
+                owner != null ? () -> ShareS.showUserProfilePage(owner) : null);
+        profileBtn.setDisable(owner == null);
         Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
                 () -> generateInvoice(booking, asset, ShareS.session.getActiveUser(), owner));
         Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
@@ -226,7 +229,7 @@ public class BookingPage {
                 active ? () -> { ShareS.bookingService.cancelBooking(bookingId); ShareS.showBookingPage(); } : null);
         cancelBtn.setDisable(!active);
 
-        HBox actions = new HBox(6, invoiceBtn, viewBtn, cancelBtn);
+        HBox actions = new HBox(6, profileBtn, invoiceBtn, viewBtn, cancelBtn);
         actions.setAlignment(Pos.CENTER_RIGHT);
         g.add(actions, 6, row);
     }

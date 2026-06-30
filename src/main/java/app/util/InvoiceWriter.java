@@ -82,6 +82,12 @@ public final class InvoiceWriter {
 
         line(sb, "  Status:   " + b.getStatus().getDbValue());
         line(sb, String.format("  TOTAL:    €%.2f", b.getTotalCost()));
+        if (asset != null && asset.getDiscountPercentage() > 0) {
+            String when = asset.getDiscountAfterDays() <= 0
+                    ? "from day 1"
+                    : "after " + asset.getDiscountAfterDays() + " days";
+            line(sb, String.format("  Discount: %.0f%% off %s", asset.getDiscountPercentage(), when));
+        }
         line(sb, LINE);
         line(sb, "   Thank you for using ShareSpace. This document summarises");
         line(sb, "        the booking and is not a legal tax invoice.");

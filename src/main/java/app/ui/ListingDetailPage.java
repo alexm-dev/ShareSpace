@@ -2,6 +2,7 @@ package app.ui;
 
 import app.model.Asset;
 import app.model.Location;
+import app.model.Rating;
 import app.model.User;
 import app.util.MetadataUtil;
 import javafx.geometry.Pos;
@@ -43,6 +44,10 @@ public class ListingDetailPage {
         VBox info = new VBox(6,
                 Ui.bold(asset.getModel().toUpperCase(), 22),
                 Ui.light("€" + String.format("%.0f", asset.getDailyRate()) + " / day", 14));
+        String discount = Ui.discountText(asset);
+        if (discount != null) {
+            info.getChildren().add(Ui.light(discount, 12));
+        }
         if (asset.getCondition() != null && !asset.getCondition().isBlank()) {
             info.getChildren().add(Ui.light("Condition: " + asset.getCondition(), 12));
         }
@@ -63,7 +68,10 @@ public class ListingDetailPage {
         infoCol.setMinWidth(300);
         infoCol.setPrefWidth(340);
 
-        Region picture = Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId()));
+        VBox picture = new VBox(12,
+                Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId())),
+                ownerCard());
+        picture.setMaxWidth(560);
 
         HBox top = new HBox(48, infoCol, picture);
         top.setAlignment(Pos.TOP_LEFT);
@@ -117,5 +125,37 @@ public class ListingDetailPage {
         Button b = Ui.button(text, 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
         b.setMaxWidth(300);
         return b;
+    }
+
+    private Node ownerCard() {
+        User owner = ShareS.userService.findById(asset.getOwnerId());
+        if (owner == null) {
+            return new HBox();
+        }
+        Region avatar = Ui.avatar(44, ShareS.userService.getProfileImage(owner.getId()), null);
+
+        List<Rating> ratings = ShareS.ratingService.findByRatedUser(owner.getId());
+        double avg = ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
+
+        VBox text = new VBox(2,
+                Ui.bold("@" + owner.getUsername().toUpperCase(), 13),
+                Ui.label(stars(avg), 12, "-fx-text-fill: #ffd000;"));
+        text.setAlignment(Pos.CENTER_LEFT);
+
+        HBox card = new HBox(12, avatar, text);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setMaxWidth(Region.USE_PREF_SIZE);
+        card.setStyle("-fx-cursor: hand;");
+        card.setOnMouseClicked(e -> ShareS.showUserProfilePage(owner));
+        return card;
+    }
+
+    private String stars(double value) {
+        int full = (int) Math.round(value);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            sb.append(i < full ? "★" : "☆");
+        }
+        return sb.toString();
     }
 }

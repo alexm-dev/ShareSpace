@@ -44,6 +44,10 @@ public class BookingFlowPage {
         VBox summary = new VBox(4,
                 Ui.bold(asset.getModel().toUpperCase(), 20),
                 Ui.light("€" + String.format("%.0f", asset.getDailyRate()) + " / day", 13));
+        String discount = Ui.discountText(asset);
+        if (discount != null) {
+            summary.getChildren().add(Ui.light(discount, 11));
+        }
         if (asset.getCondition() != null && !asset.getCondition().isBlank()) {
             summary.getChildren().add(Ui.light("Condition: " + asset.getCondition(), 11));
         }

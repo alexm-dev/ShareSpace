@@ -4,7 +4,8 @@ package app.model;
  * Represents an asset that can be rented on the platform.
  *
  * Each asset has an owner, belongs to a subcategory, and has details like
- * model, description, condition, location, and a daily rate.
+ * model, description, condition, location, daily rental rate, optional metadata,
+ * as well as optional discount information.
  *
  * The Asset class provides constructors for creating new assets and getters/setters
  */
@@ -18,6 +19,8 @@ public class Asset {
     private int assetLocationId;
     private double dailyRate;
     private String metadata;
+    private int discountAfterDays;
+    private double discountPercentage;
 
     /**
      * Constructor for creating an Asset with a ID (used when retrieving from the database).
@@ -56,6 +59,8 @@ public class Asset {
     public int getAssetLocationId() { return assetLocationId; }
     public double getDailyRate() { return dailyRate; }
     public String getMetadata() { return metadata; }
+    public int getDiscountAfterDays() { return discountAfterDays; }
+    public double getDiscountPercentage() { return discountPercentage; }
 
     // Setters
     public void setId(int id) { this.id = id; }
@@ -65,4 +70,6 @@ public class Asset {
     public void setAssetLocationId(int assetLocationId) { this.assetLocationId = assetLocationId; }
     public void setDailyRate(double dailyRate) { this.dailyRate = dailyRate; }
     public void setMetadata(String metadata) { this.metadata = metadata; }
+    public void setDiscountAfterDays(int discountAfterDays) { this.discountAfterDays = discountAfterDays; }
+    public void setDiscountPercentage(double discountPercentage) { this.discountPercentage = discountPercentage; }
 }
