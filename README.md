@@ -24,10 +24,6 @@ The Developers are:
 - [ ] UI
 
 - Rating Page -> Submit rating (1-5 stars). 
-- Default Images
-- Renter to see Current Bookings in My Bookins.
-- Back Button
-- Sub Categories
 
 - Other: Dark Mode settings etc..
 
