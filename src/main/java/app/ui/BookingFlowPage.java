@@ -199,7 +199,10 @@ public class BookingFlowPage {
         form.setMinWidth(320);
         form.setPrefWidth(320);
 
-        Region picture = Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId()));
+        VBox picture = new VBox(12,
+                Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId())),
+                Ui.ownerCard(asset.getOwnerId()));
+        picture.setMaxWidth(560);
 
         HBox content = new HBox(48, form, picture);
         content.setAlignment(Pos.TOP_LEFT);

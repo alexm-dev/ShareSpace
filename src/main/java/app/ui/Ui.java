@@ -2,6 +2,8 @@ package app.ui;
 
 import app.model.Asset;
 import app.model.Location;
+import app.model.Rating;
+import app.model.User;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.*;
@@ -17,6 +19,7 @@ import javafx.util.Duration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public final class Ui {
 
@@ -177,6 +180,40 @@ public final class Ui {
             pane.setOnMouseClicked(e -> onClick.run());
         }
         return pane;
+    }
+
+    /** Clickable card showing an owners avatar, username and rating. */
+    static Node ownerCard(int ownerId) {
+        User owner = ShareS.userService.findById(ownerId);
+        if (owner == null) {
+            return new HBox();
+        }
+
+        Region avatar = avatar(44, ShareS.userService.getProfileImage(owner.getId()), null);
+
+        List<Rating> ratings = ShareS.ratingService.findByRatedUser(owner.getId());
+        double avg = ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
+
+        VBox text = new VBox(2,
+                bold("@" + owner.getUsername().toUpperCase(), 13),
+                label(stars(avg), 12, "-fx-text-fill: #ffd000;"));
+        text.setAlignment(Pos.CENTER_LEFT);
+
+        HBox card = new HBox(12, avatar, text);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setMaxWidth(Region.USE_PREF_SIZE);
+        card.setStyle("-fx-cursor: hand;");
+        card.setOnMouseClicked(e -> ShareS.showUserProfilePage(owner));
+        return card;
+    }
+
+    private static String stars(double value) {
+        int full = (int) Math.round(value);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            sb.append(i < full ? "★" : "☆");
+        }
+        return sb.toString();
     }
 
     /**
