@@ -21,6 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * UI utility class for building JavaFX UI components with consistent styling.
+ *
+ * Is used throughout the UI package to create various UI elements like labels, buttons, tiles etc.
+ */
 public final class Ui {
 
 
