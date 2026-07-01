@@ -20,6 +20,10 @@ import javafx.stage.Stage;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+/**
+ * The main application class for the ShareSpace UI.
+ * It initializes the database, services, and manages navigation between different pages.
+ */
 public class ShareS extends Application {
 
     public static Stage primaryStage;
@@ -123,6 +127,10 @@ public class ShareS extends Application {
         scrollPane.setFitToHeight(false);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // Clamp footer to bottom of window
+        scrollPane.viewportBoundsProperty().addListener(
+                (obs, oldB, newB) -> root.setMinHeight(newB.getHeight()));
 
         Scene scene = new Scene(scrollPane);
         primaryStage.setScene(scene);

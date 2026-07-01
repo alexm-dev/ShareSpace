@@ -2,7 +2,6 @@ package app.ui;
 
 import app.model.Asset;
 import app.model.Location;
-import app.model.Rating;
 import app.model.User;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -20,7 +19,6 @@ import javafx.util.Duration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 /**
  * UI utility class for building JavaFX UI components with consistent styling.
@@ -197,8 +195,7 @@ public final class Ui {
 
         Region avatar = avatar(44, ShareS.userService.getProfileImage(owner.getId()), null);
 
-        List<Rating> ratings = ShareS.ratingService.findByRatedUser(owner.getId());
-        double avg = ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
+        double avg = ShareS.ratingService.getAverageForUser(owner.getId());
 
         VBox text = new VBox(2,
                 bold("@" + owner.getUsername().toUpperCase(), 13),
