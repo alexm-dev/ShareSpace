@@ -84,7 +84,6 @@ java -jar /target/ShareSpace-X.Y.Z.jar
 | Database   | SQLite via JDBC                        |
 | Encryption | BCrypt (jbcrypt)                       |
 | JSON       | Jackson (asset metadata serialization) |
-| Logs       | SLF4J with Logback                     |
 | Packaging  | JPackage (Packaging script)            |
 | UI         | JavaFX (with Swing as an UI extension) |
 | CI/CD      | GitHub Actions                         |
