@@ -7,6 +7,7 @@ import app.model.User;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.*;
+import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
@@ -332,9 +333,14 @@ public final class Ui {
     }
 
     private static void addHoverPop(Node node) {
+        node.setCache(true);
+        node.setCacheHint(CacheHint.QUALITY);
+
         ScaleTransition st = new ScaleTransition(Duration.millis(130), node);
-        node.setOnMouseEntered(e -> { st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
-        node.setOnMouseExited(e -> { st.stop(); st.setToX(1.0); st.setToY(1.0); st.play(); });
+        st.setOnFinished(e -> node.setCacheHint(CacheHint.QUALITY));
+
+        node.setOnMouseEntered(e -> { node.setCacheHint(CacheHint.SPEED); st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
+        node.setOnMouseExited(e -> { node.setCacheHint(CacheHint.SPEED); st.stop(); st.setToX(1.0); st.setToY(1.0); st.play(); });
         node.setOnMousePressed(e -> { node.setScaleX(0.985); node.setScaleY(0.985); });
         node.setOnMouseReleased(e -> { st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
     }
