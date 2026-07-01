@@ -4,6 +4,7 @@ import app.model.Asset;
 import app.model.Booking;
 import app.model.User;
 import app.model.enums.BookingStatus;
+import app.util.InvoiceWriter;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,6 +14,8 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +41,26 @@ public class BookingPage {
         children.add(title);
 
         User activeUser = ShareS.session.getActiveUser();
-        if (activeUser != null && ShareS.userService.hasRole(activeUser.getId(), "lender")) {
-            children.add(buildListingsSection(activeUser));
+        if (activeUser == null) {
+            children.add(Ui.light("Log in to see your bookings.", 13));
+            return Ui.buildPage(children.toArray(new Node[0]));
         }
 
-        children.add(Ui.light("INCOMING BOOKINGS", 11));
-        children.add(buildTable());
+        boolean isRenter = ShareS.userService.hasRole(activeUser.getId(), "renter");
+        boolean isLender = ShareS.userService.hasRole(activeUser.getId(), "lender");
+
+        // what you booked from others (the booker's own bookings)
+        if (isRenter) {
+            children.add(Ui.light("MY BOOKINGS", 11));
+            children.add(buildRenterTable(activeUser));
+        }
+
+        // your listings and the requests coming in on them
+        if (isLender) {
+            children.add(buildListingsSection(activeUser));
+            children.add(Ui.light("INCOMING BOOKINGS", 11));
+            children.add(buildTable());
+        }
 
         return Ui.buildPage(children.toArray(new Node[0]));
     }
@@ -131,14 +148,93 @@ public class BookingPage {
                 renterName = renter.getFullName() != null ? renter.getFullName() : renter.getUsername();
             }
 
-            addBookingRow(g, i + 1, booking, itemName, renterName);
+            addBookingRow(g, i + 1, booking, itemName, renterName, renter, asset);
         }
 
         return g;
     }
 
+    /** The active user's own bookings (what they booked from other lenders). */
+    private GridPane buildRenterTable(User user) {
+        GridPane g = new GridPane();
+        g.setHgap(12);
+        g.setVgap(14);
+        g.setMaxWidth(Double.MAX_VALUE);
+
+        double[] widths = {11, 11, 22, 18, 12, 10, 16};
+        for (double w : widths) {
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setPercentWidth(w);
+            g.getColumnConstraints().add(cc);
+        }
+
+        String[] heads = {"FROM", "TO", "ITEM", "OWNER", "STATUS", "AMOUNT", ""};
+        for (int i = 0; i < heads.length; i++) {
+            g.add(Ui.light(heads[i], 11), i, 0);
+        }
+
+        List<Booking> bookings = ShareS.bookingService.findByRenter(user.getId());
+        for (int i = 0; i < bookings.size(); i++) {
+            Booking booking = bookings.get(i);
+            Asset asset = ShareS.assetService.findById(booking.getAssetId());
+
+            String itemName = asset != null ? asset.getModel() : "#" + booking.getAssetId();
+
+            // the renter and the owner are the two parties of this booking
+            User owner = asset != null ? ShareS.userService.findById(asset.getOwnerId()) : null;
+
+            addRenterRow(g, i + 1, booking, itemName, owner, asset);
+        }
+
+        return g;
+    }
+
+    private void addRenterRow(GridPane g, int row, Booking booking,
+                              String itemName, User owner, Asset asset) {
+        BookingStatus status = booking.getStatus();
+        boolean active = status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
+
+        // the renter sees the owner's real name here (fallback to username)
+        String ownerName = owner == null ? "#" + booking.getAssetId()
+                : (owner.getFullName() != null ? owner.getFullName() : owner.getUsername());
+
+        Region bg = new Region();
+        bg.setMinHeight(48);
+        if (!active) {
+            bg.setStyle("-fx-background-color: #f0f0f0; -fx-background-radius: 10;");
+        }
+        GridPane.setColumnSpan(bg, 7);
+        GridPane.setMargin(bg, new Insets(0, -12, 0, -12));
+        g.add(bg, 0, row);
+
+        g.add(Ui.bold(booking.getStartTime().format(DATE_FMT), 13), 0, row);
+        g.add(Ui.bold(booking.getEndTime().format(DATE_FMT), 13), 1, row);
+        g.add(Ui.bold(itemName, 13), 2, row);
+        g.add(Ui.light(ownerName, 13), 3, row);
+        g.add(Ui.light(status.getDbValue(), 13), 4, row);
+        g.add(Ui.bold("€" + String.format("%.0f", booking.getTotalCost()), 13), 5, row);
+
+        int bookingId = booking.getId();
+
+        Button profileBtn = Ui.iconButton(IC_PERSON, "#d9d9d9", "#555555", "Owner profile",
+                owner != null ? () -> ShareS.showUserProfilePage(owner) : null);
+        profileBtn.setDisable(owner == null);
+        Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
+                () -> generateInvoice(booking, asset, ShareS.session.getActiveUser(), owner));
+        Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
+                asset != null ? () -> ShareS.showListingDetailPage(asset) : null);
+        viewBtn.setDisable(asset == null);
+        Button cancelBtn = Ui.iconButton(IC_BLOCK, "#e53935", "#ffffff", "Cancel booking",
+                active ? () -> { ShareS.bookingService.cancelBooking(bookingId); ShareS.showBookingPage(); } : null);
+        cancelBtn.setDisable(!active);
+
+        HBox actions = new HBox(6, profileBtn, invoiceBtn, viewBtn, cancelBtn);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+        g.add(actions, 6, row);
+    }
+
     private void addBookingRow(GridPane g, int row, Booking booking,
-                               String itemName, String renterName) {
+                               String itemName, String renterName, User renter, Asset asset) {
         BookingStatus status = booking.getStatus();
         boolean active = status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
 
@@ -168,12 +264,29 @@ public class BookingPage {
         acceptBtn.setDisable(!canAct);
         declineBtn.setDisable(!canAct);
 
-        HBox actions = new HBox(6,
-                Ui.iconButton(IC_PERSON,  "#d9d9d9", "#555555", "Renter profile", null),
-                Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Show invoice",   null),
-                Ui.iconButton(IC_EYE,     "#ffe680", "#333333", "Show / hide",    null),
-                acceptBtn, declineBtn);
+        Button profileBtn = Ui.iconButton(IC_PERSON, "#d9d9d9", "#555555", "Renter profile",
+                renter != null ? () -> ShareS.showUserProfilePage(renter) : null);
+        profileBtn.setDisable(renter == null);
+        Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
+                () -> generateInvoice(booking, asset, renter, ShareS.session.getActiveUser()));
+        Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
+                asset != null ? () -> ShareS.showListingDetailPage(asset) : null);
+        viewBtn.setDisable(asset == null);
+
+        HBox actions = new HBox(6, profileBtn, invoiceBtn, viewBtn, acceptBtn, declineBtn);
         actions.setAlignment(Pos.CENTER_RIGHT);
         g.add(actions, 6, row);
+    }
+
+    /** Writes a text invoice for the booking next to the app, then opens it. */
+    private void generateInvoice(Booking booking, Asset asset, User renter, User owner) {
+        try {
+            String categoryPath = asset != null
+                    ? ShareS.catalogService.getCategoryPath(asset.getSubCategoryId()) : "";
+            File file = InvoiceWriter.write(booking, asset, renter, owner, categoryPath);
+            new Alert(Alert.AlertType.INFORMATION, "Invoice saved to " + file.getPath()).showAndWait();
+        } catch (IOException ex) {
+            new Alert(Alert.AlertType.ERROR, "Could not write the invoice file.").showAndWait();
+        }
     }
 }

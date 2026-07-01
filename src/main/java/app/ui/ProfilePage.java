@@ -21,9 +21,22 @@ import java.util.Optional;
 
 public class ProfilePage {
 
+    /** The user whose profile to show; null means "the logged-in user's own". */
+    private final User viewedUser;
+
+    public ProfilePage() {
+        this.viewedUser = null;
+    }
+
+    public ProfilePage(User viewedUser) {
+        this.viewedUser = viewedUser;
+    }
+
     public StackPane build() {
 
-        User user = ShareS.session.getActiveUser();
+        User active = ShareS.session.getActiveUser();
+        User user = viewedUser != null ? viewedUser : active;
+        boolean own = user != null && active != null && user.getId() == active.getId();
         String displayName = user != null ? "@" + user.getUsername().toUpperCase() : "@GUEST";
 
         List<Rating> allRatings = user != null
@@ -38,8 +51,8 @@ public class ProfilePage {
 
         Region avatar = Ui.avatar(72,
                 user != null ? ShareS.userService.getProfileImage(user.getId()) : null,
-                user != null ? () -> chooseAvatar(user) : null);
-        if (user != null) {
+                own ? () -> chooseAvatar(user) : null);
+        if (own) {
             avatar.setOnMouseClicked(e -> {
                 if (e.getButton() == MouseButton.PRIMARY) {
                     chooseAvatar(user);
@@ -67,21 +80,28 @@ public class ProfilePage {
                 ? ShareS.assetService.findByOwner(user.getId())
                 : List.of();
         List<Node> tileList = new ArrayList<>();
-        if (user != null) {
+        if (own) {
             tileList.add(Ui.addTile("NEW LISTING", 0.55, ShareS::showCreateListingPage));
         }
         for (Asset a : assets) {
-            boolean locked = ShareS.assetService.hasActiveBookings(a.getId());
-            tileList.add(Ui.ownerTile(
-                    a.getModel().toUpperCase(),
-                    "€" + String.format("%.0f", a.getDailyRate()) + "/DAY · "
-                            + ShareS.catalogService.getCategoryPath(a.getSubCategoryId()).toUpperCase(),
-                    0.55,
-                    ShareS.assetService.getImage(a.getId()),
-                    locked ? "Locked! Has active bookings" : null,
-                    () -> ShareS.showListingDetailPage(a),
-                    () -> ShareS.showEditListingPage(a),
-                    () -> confirmDelete(a)));
+            String caption = "€" + String.format("%.0f", a.getDailyRate()) + "/DAY · "
+                    + ShareS.catalogService.getCategoryPath(a.getSubCategoryId()).toUpperCase();
+            if (own) {
+                boolean locked = ShareS.assetService.hasActiveBookings(a.getId());
+                tileList.add(Ui.ownerTile(
+                        a.getModel().toUpperCase(), caption, 0.55,
+                        ShareS.assetService.getImage(a.getId()),
+                        locked ? "Locked! Has active bookings" : null,
+                        () -> ShareS.showListingDetailPage(a),
+                        () -> ShareS.showEditListingPage(a),
+                        () -> confirmDelete(a)));
+            } else {
+                // read-only tile when viewing someone else's profile
+                tileList.add(Ui.tile(
+                        a.getModel().toUpperCase(), caption, 0.55,
+                        ShareS.assetService.getImage(a.getId()),
+                        () -> ShareS.showListingDetailPage(a)));
+            }
         }
         GridPane items = Ui.grid(3, 16, tileList.toArray(new Node[0]));
 

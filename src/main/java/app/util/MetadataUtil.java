@@ -31,7 +31,6 @@ public final class MetadataUtil {
         try {
             return MAPPER.readValue(json, MAP_TYPE);
         } catch (Exception e) {
-            Logger.warn("could not parse metadata json: " + e.getMessage());
             return new LinkedHashMap<>();
         }
     }
@@ -55,11 +54,11 @@ public final class MetadataUtil {
     }
 
     /**
-     * Converts a metadata key into a human-readable string.
+     * Converts a metadata key into a display label.
      * Example: "fooBar_baz" -> "Foo bar baz"
      *
      * @param key the metadata key
-     * @return a human-readable string
+     * @return the display label
      */
     public static String humanizeKey(String key) {
         if (key == null || key.isBlank()) {

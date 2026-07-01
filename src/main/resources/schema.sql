@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS assets (
     asset_location_id INTEGER NOT NULL,
     daily_rate        REAL    NOT NULL,
     metadata          TEXT,
+    discount_after_days INTEGER NOT NULL DEFAULT 0,
+    discount_percentage REAL    NOT NULL DEFAULT 0,
 
     FOREIGN KEY (owner_id)          REFERENCES users(id)          ON DELETE CASCADE,
     FOREIGN KEY (sub_category_id)   REFERENCES sub_categories(id) ON DELETE RESTRICT,

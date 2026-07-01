@@ -19,11 +19,6 @@ public class BookingService {
     private final BookingDAO bookingDAO;
     private final AssetDAO assetDAO;
 
-    /// Default discount data.
-    private boolean discountEnabled = false;
-    private int discountAfterDays = 3;
-    private double discountPercentage = 20.0;
-
     public BookingService() {
         this.bookingDAO = new BookingDAO();
         this.assetDAO = new AssetDAO();
@@ -44,13 +39,16 @@ public class BookingService {
 
         double days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
         double billableDays = Math.max(1, Math.ceil(days * 2) / 2.0);
+        double rate = asset.getDailyRate();
+        int afterDays = asset.getDiscountAfterDays();
+        double percentage = asset.getDiscountPercentage();
 
-        if (!discountEnabled || billableDays <= discountAfterDays) {
-            return billableDays * asset.getDailyRate();
+        if (percentage <= 0 || billableDays <= afterDays) {
+            return billableDays * rate;
         }
 
-        double discountedRate = asset.getDailyRate() * (1 - discountPercentage / 100.0);
-        return (discountAfterDays * asset.getDailyRate()) + ((billableDays - discountAfterDays) * discountedRate);
+        double discountedRate = rate * (1 - percentage / 100.0);
+        return (afterDays * rate) + ((billableDays - afterDays) * discountedRate);
     }
 
     /**
@@ -138,30 +136,5 @@ public class BookingService {
      */
     public List<Asset> getBookingsByOwner(int ownerId) {
         return assetDAO.findByOwnerId(ownerId);
-    }
-
-    // Discount configuration methods
-
-    /**
-     * Enables or disables the discount feature.
-     * When enabled, bookings that exceed the specified number of days
-     * will receive a discount on the daily rate for the additional days.
-     *
-     * @param enabled True to enable discounts, false to disable.
-     *
-     */
-    public void enableDiscount(boolean enabled) {
-        this.discountEnabled = enabled;
-    }
-
-    /**
-     * Configures the discount settings.
-     *
-     * @param afterDays The number of days after which the discount should be applied.
-     * @param percentage The percentage of the discount to apply to the daily rate for days exceeding the threshold.
-     */
-    public void configureDiscount(int afterDays, double percentage) {
-        this.discountAfterDays = afterDays;
-        this.discountPercentage = percentage;
     }
 }

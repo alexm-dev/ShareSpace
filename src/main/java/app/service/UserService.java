@@ -9,6 +9,7 @@ import app.model.User;
 import app.model.UserRole;
 import app.model.Role;
 import app.model.Location;
+import app.model.enums.UserStatus;
 import app.util.AuthUtil;
 import static app.util.Constants.MAX_IMAGE_BYTES;
 
@@ -62,7 +63,7 @@ public class UserService {
         }
 
         User user = new User(username, email, AuthUtil.hashPassword(plainPassword));
-        user.setStatus("active");
+        user.setStatus(UserStatus.ACTIVE);
         return userDAO.create(user) ? user : null;
     }
 
@@ -140,10 +141,10 @@ public class UserService {
      * Updates a user's status (eg. active, inactive, suspended).
      *
      * @param userId the user id
-     * @param newStatus the new status string
+     * @param newStatus the new status
      * @return true if updated, false if the user was not found
      */
-    public boolean updateStatus(int userId, String newStatus) {
+    public boolean updateStatus(int userId, UserStatus newStatus) {
         User user = userDAO.findById(userId);
         if (user == null) {
             return false;

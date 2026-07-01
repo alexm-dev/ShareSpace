@@ -1,6 +1,7 @@
 package app.dao;
 
 import app.model.User;
+import app.model.enums.UserStatus;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,7 +46,7 @@ public class UserDAO extends BaseDAO<User, Integer> {
             rs.getString("email"),
             rs.getString("password_hash"),
             LocalDateTime.parse(rs.getString("created_time"), FMT),
-            rs.getString("status")
+            parseStatus(rs.getString("status"))
         );
         user.setFirstName(rs.getString("first_name"));
         user.setLastName(rs.getString("last_name"));
@@ -54,6 +55,11 @@ public class UserDAO extends BaseDAO<User, Integer> {
             user.setLocationId(locationId);
         }
         return user;
+    }
+
+    /** Parses the stored status string into the enum, tolerating a null column. */
+    private static UserStatus parseStatus(String value) {
+        return value == null ? null : UserStatus.valueOf(value.toUpperCase());
     }
 
     /**
@@ -70,7 +76,7 @@ public class UserDAO extends BaseDAO<User, Integer> {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getPasswordHash());
-            stmt.setString(4, user.getStatus());
+            stmt.setString(4, user.getStatus() == null ? null : user.getStatus().getDbValue());
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
                 try (ResultSet keys = stmt.getGeneratedKeys()) {
@@ -97,7 +103,7 @@ public class UserDAO extends BaseDAO<User, Integer> {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getPasswordHash());
-            stmt.setString(4, user.getStatus());
+            stmt.setString(4, user.getStatus() == null ? null : user.getStatus().getDbValue());
             stmt.setString(5, user.getFirstName());
             stmt.setString(6, user.getLastName());
             if (user.getLocationId() != null) {

@@ -44,6 +44,10 @@ public class BookingFlowPage {
         VBox summary = new VBox(4,
                 Ui.bold(asset.getModel().toUpperCase(), 20),
                 Ui.light("€" + String.format("%.0f", asset.getDailyRate()) + " / day", 13));
+        String discount = Ui.discountText(asset);
+        if (discount != null) {
+            summary.getChildren().add(Ui.light(discount, 11));
+        }
         if (asset.getCondition() != null && !asset.getCondition().isBlank()) {
             summary.getChildren().add(Ui.light("Condition: " + asset.getCondition(), 11));
         }
@@ -195,15 +199,20 @@ public class BookingFlowPage {
         form.setMinWidth(320);
         form.setPrefWidth(320);
 
-        VBox pictureBox = new VBox(Ui.image(0.55, ShareS.assetService.getImage(asset.getId())));
-        pictureBox.setMinWidth(0);
-        pictureBox.setMaxWidth(600);
-        HBox.setHgrow(pictureBox, Priority.ALWAYS);
+        VBox picture = new VBox(12,
+                Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId())),
+                Ui.ownerCard(asset.getOwnerId()));
+        picture.setMaxWidth(560);
 
-        HBox content = new HBox(48, form, pictureBox);
+        HBox content = new HBox(48, form, picture);
         content.setAlignment(Pos.TOP_LEFT);
+        content.setMaxWidth(Region.USE_PREF_SIZE);
 
-        return Ui.buildPage(title, content);
+        // centre the whole booking block on the page, like the listing view
+        HBox contentWrap = new HBox(content);
+        contentWrap.setAlignment(Pos.CENTER);
+
+        return Ui.buildPage(title, contentWrap);
     }
 
     private void showError(Label error, String message) {

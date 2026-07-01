@@ -8,15 +8,9 @@ import app.util.MetadataSchema;
 import app.util.MetadataUtil;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
@@ -123,6 +117,19 @@ public class CreateListingPage {
         dailyRate.setPromptText("daily rate");
         dailyRate.setMaxWidth(300);
 
+        CheckBox discountToggle = new CheckBox("Offer a discount for longer rentals");
+        TextField discountDays = new TextField();
+        discountDays.setPromptText("after how many days");
+        discountDays.setMaxWidth(300);
+        TextField discountPct = new TextField();
+        discountPct.setPromptText("percent off (e.g. 20)");
+        discountPct.setMaxWidth(300);
+        VBox discountBox = new VBox(10,
+                Ui.light("Discount after (days)", 11), discountDays,
+                Ui.light("Discount (%)", 11), discountPct);
+        discountBox.visibleProperty().bind(discountToggle.selectedProperty());
+        discountBox.managedProperty().bind(discountToggle.selectedProperty());
+
         TextField city = new TextField();
         city.setPromptText("city");
         city.setMaxWidth(300);
@@ -218,6 +225,11 @@ public class CreateListingPage {
             if (editing.getDescription() != null) description.setText(editing.getDescription());
             if (editing.getCondition() != null) condition.setText(editing.getCondition());
             dailyRate.setText(String.valueOf(editing.getDailyRate()));
+            if (editing.getDiscountPercentage() > 0) {
+                discountToggle.setSelected(true);
+                discountDays.setText(String.valueOf(editing.getDiscountAfterDays()));
+                discountPct.setText(String.valueOf(editing.getDiscountPercentage()));
+            }
             applySchemaRows.run();
         }
 
@@ -258,12 +270,27 @@ public class CreateListingPage {
             String descText = description.getText().trim();
             String conditionText = condition.getText().trim();
 
+            int discountAfterDays = 0;
+            double discountPercentage = 0;
+            if (discountToggle.isSelected()) {
+                Integer afterDays = parseInt(discountDays.getText().trim());
+                Double pct = parseDouble(discountPct.getText().trim());
+                if (afterDays == null || afterDays < 0 || pct == null || pct <= 0 || pct > 100) {
+                    showError(error, "Discount needs days of 0 or more and a percent between 1 and 100.");
+                    return;
+                }
+                discountAfterDays = afterDays;
+                discountPercentage = pct;
+            }
+
             if (isEdit) {
                 editing.setModel(modelText);
                 editing.setDescription(descText);
                 editing.setCondition(conditionText);
                 editing.setDailyRate(rate);
                 editing.setMetadata(metadata);
+                editing.setDiscountAfterDays(discountAfterDays);
+                editing.setDiscountPercentage(discountPercentage);
                 if (ShareS.assetService.updateAsset(editing, me)) {
                     if (imageDirty[0]) {
                         if (imageData[0] != null) {
@@ -291,6 +318,8 @@ public class CreateListingPage {
 
             Asset asset = new Asset(me, sub.getId(), modelText, descText, conditionText, 0, rate);
             asset.setMetadata(metadata);
+            asset.setDiscountAfterDays(discountAfterDays);
+            asset.setDiscountPercentage(discountPercentage);
             Location loc = new Location(cityText, postalText,
                     districtText.isEmpty() ? null : districtText, streetText, countryText);
             Asset created = ShareS.assetService.createAsset(asset, loc);
@@ -315,12 +344,14 @@ public class CreateListingPage {
                 Ui.light("Description", 11), description,
                 Ui.light("Condition", 11), condition,
                 Ui.light("Daily Rate", 11), dailyRate,
+                discountToggle, discountBox,
                 Ui.light("Details (optional)", 11), metadataRows, addDetail);
         if (!isEdit) {
             form.getChildren().add(locationBox);
         }
         form.getChildren().addAll(error, submit);
-        form.setMaxWidth(Region.USE_PREF_SIZE);
+        form.setMaxWidth(460);
+        form.setPrefWidth(460);
 
         HBox formWrap = new HBox(form);
         formWrap.setAlignment(Pos.CENTER);
@@ -378,6 +409,14 @@ public class CreateListingPage {
     private Double parseDouble(String text) {
         try {
             return Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Integer parseInt(String text) {
+        try {
+            return Integer.parseInt(text);
         } catch (NumberFormatException e) {
             return null;
         }

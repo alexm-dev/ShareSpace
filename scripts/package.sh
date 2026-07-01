@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Build a self-contained native app for Linux/macOS -> dist/ShareSpace/bin/ShareSpace
+
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

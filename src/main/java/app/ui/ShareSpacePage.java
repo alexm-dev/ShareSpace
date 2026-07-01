@@ -1,13 +1,23 @@
 package app.ui;
 
+import app.model.Category;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.layout.*;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static app.ui.Ui.button;
 
 public class ShareSpacePage {
 
     public StackPane build() {
 
-        Region banner = Ui.image(0.31);
+        Region banner = Ui.image(0.31, Ui.resourceBytes("/images/header.jpg"));
+
 
         VBox who = new VBox(12,
                 Ui.light("WHO WE ARE", 11),
@@ -15,11 +25,13 @@ public class ShareSpacePage {
                 Ui.button("ABOUT US", 13, "-fx-background-color: #ffd000;"));
         who.setAlignment(Pos.CENTER);
         who.setMaxWidth(Double.MAX_VALUE);
+        for (var n : who.getChildren()) {
+            if (n instanceof javafx.scene.control.Button b) {
+                b.setOnAction(e -> ShareS.showAboutPage());
+            }
+        }
 
-        HBox strip = new HBox(12,
-                Ui.image(3), Ui.image(3), Ui.image(3), Ui.image(3), Ui.image(3));
-        strip.setMaxWidth(Double.MAX_VALUE);
-        for (var n : strip.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        VBox strip = featuredCategories("Electronics", "Gaming", "Outdoor", "Music", "Fashion");
 
         VBox what = new VBox(8,
                 Ui.bold("WHAT WE DO", 28),
@@ -38,8 +50,30 @@ public class ShareSpacePage {
                 Ui.boldCentered("Work with us to turn unused inventory into revenue while serving your community.", 28),
                 Ui.button("ABOUT US", 13, "-fx-background-color: #ffd000;"));
         work.setAlignment(Pos.CENTER);
+        for (var n : work.getChildren()) {
+            if (n instanceof javafx.scene.control.Button b) {
+                b.setOnAction(e -> ShareS.showAboutPage());
+            }
+        }
 
         return Ui.buildPage(banner, who, strip, what, steps, slash, work);
+    }
+
+    private VBox featuredCategories(String... names) {
+        List<Category> all = ShareS.catalogService.getAllCategories();
+        List<Node> cards = new ArrayList<>();
+        for (String name : names) {
+            all.stream()
+                    .filter(c -> c.getName().equalsIgnoreCase(name))
+                    .findFirst()
+                    .ifPresent(c -> cards.add(Ui.tile(c.getName().toUpperCase(), "", 1.0,
+                            Ui.categoryImage(c.getName()), () -> ShareS.showCategoryPage(c))));
+        }
+        GridPane grid = Ui.grid(Math.max(1, cards.size()), 12, cards.toArray(new Node[0]));
+
+        VBox box = new VBox(16, Ui.light("POPULAR CATEGORIES", 11), grid);
+        box.setMaxWidth(Double.MAX_VALUE);
+        return box;
     }
 
     private VBox step(String number, String title, String desc) {

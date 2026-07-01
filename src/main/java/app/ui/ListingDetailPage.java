@@ -43,6 +43,10 @@ public class ListingDetailPage {
         VBox info = new VBox(6,
                 Ui.bold(asset.getModel().toUpperCase(), 22),
                 Ui.light("€" + String.format("%.0f", asset.getDailyRate()) + " / day", 14));
+        String discount = Ui.discountText(asset);
+        if (discount != null) {
+            info.getChildren().add(Ui.light(discount, 12));
+        }
         if (asset.getCondition() != null && !asset.getCondition().isBlank()) {
             info.getChildren().add(Ui.light("Condition: " + asset.getCondition(), 12));
         }
@@ -63,7 +67,10 @@ public class ListingDetailPage {
         infoCol.setMinWidth(300);
         infoCol.setPrefWidth(340);
 
-        Region picture = Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId()));
+        VBox picture = new VBox(12,
+                Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId())),
+                Ui.ownerCard(asset.getOwnerId()));
+        picture.setMaxWidth(560);
 
         HBox top = new HBox(48, infoCol, picture);
         top.setAlignment(Pos.TOP_LEFT);

@@ -34,6 +34,7 @@ public class CategoryPage {
 
         Node[] tiles = subs.stream()
                 .map(s -> (Node) Ui.tile(s.getName().toUpperCase(), "", 0.48,
+                        Ui.subCategoryImage(category.getName(), s.getName()),
                         () -> ShareS.showListingsPage(s)))
                 .toArray(Node[]::new);
         GridPane grid = Ui.grid(3, 16, tiles);

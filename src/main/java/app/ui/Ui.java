@@ -1,46 +1,45 @@
 package app.ui;
 
+import app.model.Asset;
 import app.model.Location;
+import app.model.Rating;
+import app.model.User;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.geometry.Side;
+import javafx.geometry.*;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.OverrunStyle;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.*;
 import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
+/**
+ * UI utility class for building JavaFX UI components with consistent styling.
+ *
+ * Is used throughout the UI package to create various UI elements like labels, buttons, tiles etc.
+ */
 public final class Ui {
 
-    private Ui() {}
+
+    /** Global font scale */
+    static final double FONT_SCALE = 1.2;
+
+    private static int scaled(int sizePx) {
+        return (int) Math.round(sizePx * FONT_SCALE);
+    }
 
     static Label label(String text, int sizePx, String extraStyle) {
         Label l = new Label(text);
         l.setWrapText(true);
-        l.setStyle("-fx-font-size: " + sizePx + "px;" + extraStyle);
+        l.setStyle("-fx-font-size: " + scaled(sizePx) + "px;" + extraStyle);
         return l;
     }
 
@@ -56,12 +55,18 @@ public final class Ui {
         return label(text, sizePx, "-fx-text-fill: #888888;");
     }
 
+    private static void roundedClip(Region r) {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(r.widthProperty());
+        clip.heightProperty().bind(r.heightProperty());
+        clip.setArcWidth(16);
+        clip.setArcHeight(16);
+        r.setClip(clip);
+    }
+
     static Region image(double aspectRatio) {
-        Region r = new Region();
+        AspectPane r = new AspectPane(aspectRatio);
         r.setStyle("-fx-background-color: #d9d9d9; -fx-background-radius: 8;");
-        r.setMaxWidth(Double.MAX_VALUE);
-        r.setMinHeight(Region.USE_PREF_SIZE);
-        r.prefHeightProperty().bind(r.widthProperty().multiply(aspectRatio));
         return r;
     }
 
@@ -71,27 +76,44 @@ public final class Ui {
             return image(aspectRatio);
         }
 
-        Region r = new Region();
-        r.setMaxWidth(Double.MAX_VALUE);
-        r.setMinHeight(Region.USE_PREF_SIZE);
-        r.prefHeightProperty().bind(r.widthProperty().multiply(aspectRatio));
+        AspectPane r = new AspectPane(aspectRatio);
         r.setBackground(new Background(coverBackground(img)));
-
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(r.widthProperty());
-        clip.heightProperty().bind(r.heightProperty());
-        clip.setArcWidth(16);
-        clip.setArcHeight(16);
-        r.setClip(clip);
+        roundedClip(r);
         return r;
+    }
+
+    private static BackgroundImage backgroundImage(Image img, boolean contain) {
+        BackgroundSize size = new BackgroundSize(
+                BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, contain, !contain);
+        return new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER, size);
     }
 
     /** A BackgroundImage that scales an image to cover its region, centred. */
     private static BackgroundImage coverBackground(Image img) {
-        BackgroundSize cover = new BackgroundSize(
-                BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true);
-        return new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER, cover);
+        return backgroundImage(img, false);
+    }
+
+    /**
+     * Fit an image to a blurred background of the same image.
+     */
+    static Region fittedImage(double aspectRatio, byte[] data) {
+        Image img = (data == null || data.length == 0) ? null : new Image(new ByteArrayInputStream(data));
+        if (img == null || img.isError() || img.getWidth() == 0 || img.getHeight() == 0) {
+            return image(aspectRatio);
+        }
+
+        Region back = new Region();
+        back.setBackground(new Background(coverBackground(img)));
+        back.setEffect(new GaussianBlur(24));
+
+        Region front = new Region();
+        front.setBackground(new Background(backgroundImage(img, true)));
+
+        AspectPane pane = new AspectPane(aspectRatio);
+        pane.getChildren().addAll(back, front);
+        roundedClip(pane);
+        return pane;
     }
 
     /**
@@ -117,6 +139,30 @@ public final class Ui {
         return r;
     }
 
+    private static String slug(String name) {
+        return name.toLowerCase().replaceAll("[^a-z0-9]+", "");
+    }
+
+    /** Reads a bundled classpath resource into bytes, or null if it isn't there. */
+    static byte[] resourceBytes(String path) {
+        try (InputStream in = Ui.class.getResourceAsStream(path)) {
+            return in == null ? null : in.readAllBytes();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** Cover photo bundled for a category, or null if none ships for it. */
+    static byte[] categoryImage(String categoryName) {
+        return resourceBytes("/images/categories/" + slug(categoryName) + "/cover.jpg");
+    }
+
+    /** Cover photo bundled for a subcategory */
+    static byte[] subCategoryImage(String categoryName, String subCategoryName) {
+        return resourceBytes(
+                "/images/categories/" + slug(categoryName) + "/" + slug(subCategoryName) + ".jpg");
+    }
+
     static Region avatar(double diameter, byte[] data, Runnable onClick) {
         StackPane pane = new StackPane();
         pane.setMinSize(diameter, diameter);
@@ -128,9 +174,9 @@ public final class Ui {
             pane.setBackground(new Background(coverBackground(img)));
         } else {
             pane.setStyle("-fx-background-color: #d9d9d9;");
-            Label glyph = new Label("+");
-            glyph.setStyle("-fx-font-size: " + (diameter * 0.4) + "px; -fx-text-fill: #9e9e9e;");
-            pane.getChildren().add(glyph);
+            if (onClick != null) {
+                pane.getChildren().add(plusIcon(diameter * 0.4, "#9e9e9e"));
+            }
         }
 
         pane.setClip(new Circle(diameter / 2, diameter / 2, diameter / 2));
@@ -139,6 +185,40 @@ public final class Ui {
             pane.setOnMouseClicked(e -> onClick.run());
         }
         return pane;
+    }
+
+    /** Clickable card showing an owners avatar, username and rating. */
+    static Node ownerCard(int ownerId) {
+        User owner = ShareS.userService.findById(ownerId);
+        if (owner == null) {
+            return new HBox();
+        }
+
+        Region avatar = avatar(44, ShareS.userService.getProfileImage(owner.getId()), null);
+
+        List<Rating> ratings = ShareS.ratingService.findByRatedUser(owner.getId());
+        double avg = ratings.stream().mapToInt(Rating::getRatingValue).average().orElse(0.0);
+
+        VBox text = new VBox(2,
+                bold("@" + owner.getUsername().toUpperCase(), 13),
+                label(stars(avg), 12, "-fx-text-fill: #ffd000;"));
+        text.setAlignment(Pos.CENTER_LEFT);
+
+        HBox card = new HBox(12, avatar, text);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setMaxWidth(Region.USE_PREF_SIZE);
+        card.setStyle("-fx-cursor: hand;");
+        card.setOnMouseClicked(e -> ShareS.showUserProfilePage(owner));
+        return card;
+    }
+
+    private static String stars(double value) {
+        int full = (int) Math.round(value);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            sb.append(i < full ? "★" : "☆");
+        }
+        return sb.toString();
     }
 
     /**
@@ -158,7 +238,16 @@ public final class Ui {
         menu.show(anchor, Side.BOTTOM, 0, 0);
     }
 
-    /** One-line human-readable address, in the shape the listing pages display. */
+    static String discountText(Asset asset) {
+        if (asset.getDiscountPercentage() <= 0) {
+            return null;
+        }
+        String when = asset.getDiscountAfterDays() <= 0
+                ? "from day 1"
+                : "after " + asset.getDiscountAfterDays() + " days";
+        return String.format("%.0f%% off %s", asset.getDiscountPercentage(), when);
+    }
+
     static String formatLocation(Location l) {
         StringBuilder sb = new StringBuilder();
         if (l.getStreetAddress() != null && !l.getStreetAddress().isBlank()) {
@@ -196,7 +285,7 @@ public final class Ui {
 
     static Button button(String text, int sizePx, String extraStyle) {
         Button b = new Button(text);
-        b.setStyle("-fx-font-size: " + sizePx + "px; -fx-background-radius: 20; -fx-cursor: hand;" + extraStyle);
+        b.setStyle("-fx-font-size: " + scaled(sizePx) + "px; -fx-background-radius: 20; -fx-cursor: hand;" + extraStyle);
         return b;
     }
 
@@ -232,13 +321,22 @@ public final class Ui {
         HBox head = new HBox(6, bold(name, 13), light(price, 11));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
-        VBox box = new VBox(6, head, image(aspectRatio, imageData));
+        VBox box = new VBox(6, head, fittedImage(aspectRatio, imageData));
         box.setMaxWidth(Double.MAX_VALUE);
         if (onClick != null) {
             box.setStyle("-fx-cursor: hand;");
             box.setOnMouseClicked(e -> onClick.run());
+            addHoverPop(box);
         }
         return box;
+    }
+
+    private static void addHoverPop(Node node) {
+        ScaleTransition st = new ScaleTransition(Duration.millis(130), node);
+        node.setOnMouseEntered(e -> { st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
+        node.setOnMouseExited(e -> { st.stop(); st.setToX(1.0); st.setToY(1.0); st.play(); });
+        node.setOnMousePressed(e -> { node.setScaleX(0.985); node.setScaleY(0.985); });
+        node.setOnMouseReleased(e -> { st.stop(); st.setToX(1.03); st.setToY(1.03); st.play(); });
     }
 
     static VBox ownerTile(String name, String price, double aspectRatio, byte[] imageData,
@@ -269,7 +367,7 @@ public final class Ui {
         }
         kebab.setOnAction(e -> menu.show(kebab, Side.BOTTOM, 0, 0));
 
-        StackPane imageStack = new StackPane(image(aspectRatio, imageData), kebab);
+        StackPane imageStack = new StackPane(fittedImage(aspectRatio, imageData), kebab);
         StackPane.setAlignment(kebab, Pos.TOP_RIGHT);
         StackPane.setMargin(kebab, new Insets(8));
 
@@ -282,13 +380,21 @@ public final class Ui {
         return box;
     }
 
+    private static SVGPath plusIcon(double sizePx, String color) {
+        SVGPath plus = new SVGPath();
+        plus.setContent("M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z");
+        plus.setFill(Color.web(color));
+        double scale = sizePx / 24.0;
+        plus.setScaleX(scale);
+        plus.setScaleY(scale);
+        return plus;
+    }
+
     static VBox addTile(String name, double aspectRatio, Runnable onClick) {
         HBox head = new HBox(6, bold(name, 13));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
-        Label plus = new Label("+");
-        plus.setStyle("-fx-font-size: 64px; -fx-font-weight: bold; -fx-text-fill: #9e9e9e;");
-        StackPane imageStack = new StackPane(image(aspectRatio), plus);
+        StackPane imageStack = new StackPane(image(aspectRatio), plusIcon(64, "#9e9e9e"));
 
         VBox box = new VBox(6, head, imageStack);
         box.setMaxWidth(Double.MAX_VALUE);
@@ -341,7 +447,7 @@ public final class Ui {
      * @param children the page content
      * @return the page as a StackPane object
      */
-    private static StackPane buildPagerInternal(Node... children)/* 1 usage */ {
+    private static StackPane buildPagerInternal(Node... children) {
         // logo with event
         Label logo = bold("ShareSpace®", 19);
         logo.setStyle("-fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 20;");
@@ -449,8 +555,7 @@ public final class Ui {
         // toggleMenu button in header
         Button toggleOn = getButton(tt);
 
-        // heading is logo + toggleOn button
-        HBox heading = new HBox(20, logo, spacer(), toggleOn);
+        HBox heading = new HBox(20, logo, spacer(), getBackButton(), toggleOn);
         heading.setAlignment(Pos.CENTER_LEFT);
         heading.setPadding(new Insets(16, 0, 16, 0));
         heading.setStyle("-fx-border-color: transparent transparent #e5e5e5 transparent; -fx-border-width: 0 0 1 0;");
@@ -500,6 +605,24 @@ public final class Ui {
         return toggle;
     }
 
+    private static Button getBackButton() {
+        SVGPath icon = new SVGPath();
+        icon.setContent("M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z");
+        icon.setFill(Color.web("black"));
+
+        Button back = new Button();
+        back.setGraphic(icon);
+        back.setStyle("-fx-background-color: white; -fx-background-radius: 20;"
+                + " -fx-cursor: hand; -fx-min-width: 30px; -fx-min-height: 30px;"
+                + " -fx-padding: 6;");
+        back.setOnAction(event -> ShareS.goBack());
+
+        boolean canGoBack = ShareS.canGoBack();
+        back.setVisible(canGoBack);
+        back.setManaged(canGoBack);
+        return back;
+    }
+
     // event for closing the drawer menu
     private static void closeMenu(TranslateTransition tt) {
         isOpen = false;
@@ -514,7 +637,7 @@ public final class Ui {
      * @param children the page content
      * @return the page as a StackPane object
      */
-    static StackPane buildPage(Node... children)/* 21 usage */ {
+    static StackPane buildPage(Node... children) {
         return buildPagerInternal(children);
     }
 }

@@ -24,10 +24,8 @@ The Developers are:
 - [ ] UI
 
 - Rating Page -> Submit rating (1-5 stars). 
-- Default Images
-- Renter to see Current Bookings in My Bookins.
-- Back Button
-- Sub Categories
+- Linking of various buttons. (About Us, etc.)
+- Post-registration transfering to homepage instead of settings.
 
 - Other: Dark Mode settings etc..
 
@@ -86,7 +84,6 @@ java -jar /target/ShareSpace-X.Y.Z.jar
 | Database   | SQLite via JDBC                        |
 | Encryption | BCrypt (jbcrypt)                       |
 | JSON       | Jackson (asset metadata serialization) |
-| Logs       | SLF4J with Logback                     |
 | Packaging  | JPackage (Packaging script)            |
 | UI         | JavaFX (with Swing as an UI extension) |
 | CI/CD      | GitHub Actions                         |
@@ -112,12 +109,8 @@ You can then open the index.html inside output directory. Default: `target/repor
 
 To build the submission zip/tar:
 
-Either run the `/scripts/build-submission.sh` or `build-submission.ps1`
-OR
-Download the action workflow artifact from the the [Java CI Maven](https://github.com/alexm-dev/ShareSpace/actions/workflows/maven.yml) workflow.
-Click on the most recent commit and then download the `ShareSpace-submission`.
-
-Prefer the script.
+Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
+Click on the most workflow run and then download the `ShareSpace-submission`.
 
 ## License
 
