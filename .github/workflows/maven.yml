@@ -124,8 +124,14 @@ jobs:
           name: app-image-windows
           path: submission/ShareSpace/app/windows
 
+      - name: Unpack source into browsable tree
+        run: |
+          unzip -q submission/ShareSpace/repo.zip -d submission/ShareSpace
+          rm submission/ShareSpace/repo.zip
+
       - name: Upload submission package
         uses: actions/upload-artifact@v7
         with:
           name: ShareSpace-submission
           path: submission
+          include-hidden-files: true
