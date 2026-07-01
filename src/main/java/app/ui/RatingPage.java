@@ -181,14 +181,24 @@ public class RatingPage {
         Label dateLabel = Ui.light(
                 booking.getStartTime().format(DATE_FMT) + " → " + booking.getEndTime().format(DATE_FMT), 12);
 
+        Rating existingRating = ShareS.ratingService.findByBooking(booking.getId())
+                .stream()
+                .filter(r -> r.getReviewerId() == me.getId())
+                .findFirst()
+                .orElse(null);
+
+        int initialRating = existingRating != null ? existingRating.getRatingValue() : 0;
+
         // clickable star rating
-        int[] selectedRating = {0};
+        int[] selectedRating = {initialRating};
         Label[] starLabels = new Label[5];
         HBox starBox = new HBox(4);
 
         for (int s = 0; s < 5; s++) {
             final int starIndex = s + 1;
-            Label star = Ui.label("★", 28, "-fx-text-fill: #cccccc; -fx-cursor: hand;");
+            Label star = Ui.label("★", 28, s < initialRating
+                    ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
+                    : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
             starLabels[s] = star;
             star.setOnMouseClicked(e -> {
                 selectedRating[0] = starIndex;
@@ -203,39 +213,46 @@ public class RatingPage {
 
         Label feedback = Ui.light("", 12);
 
-        Button submit = Ui.button("Submit Rating", 13,
-                "-fx-background-color: #ffd000; -fx-text-fill: #333333;");
-        submit.setOnAction(e -> {
-            if (selectedRating[0] == 0) {
-                feedback.setText("Please select a star rating.");
-                feedback.setStyle("-fx-text-fill: #e53935;");
-                return;
-            }
-            Integer ratedUserId = asset != null ? asset.getOwnerId() : null;
+        VBox row;
+        if (existingRating != null) {
+            // already rated — show stars as read-only
+            row = new VBox(8,
+                    itemLabel, dateLabel,
+                    Ui.light("Your rating", 11), starBox);
+        } else {
+            Button submit = Ui.button("Submit Rating", 13,
+                    "-fx-background-color: #ffd000; -fx-text-fill: #333333;");
+            submit.setOnAction(e -> {
+                if (selectedRating[0] == 0) {
+                    feedback.setText("Please select a star rating.");
+                    feedback.setStyle("-fx-text-fill: #e53935;");
+                    return;
+                }
+                Integer ratedUserId = asset != null ? asset.getOwnerId() : null;
 
-            Rating rating = new Rating(
-                    booking.getId(),
-                    me.getId(),
-                    ratedUserId,
-                    selectedRating[0],
-                    null);
+                Rating rating = new Rating(
+                        booking.getId(),
+                        me.getId(),
+                        ratedUserId,
+                        selectedRating[0],
+                        null);
 
-            Rating result = ShareS.ratingService.submitRating(rating);
-            if (result != null) {
-                feedback.setText("Rating submitted!");
-                feedback.setStyle("-fx-text-fill: green;");
-                submit.setDisable(true);
-                starBox.setDisable(true);
-            } else {
-                feedback.setText("Failed to submit rating.");
-                feedback.setStyle("-fx-text-fill: #e53935;");
-            }
-        });
-
-        VBox row = new VBox(8,
-                itemLabel, dateLabel,
-                Ui.light("Rating (1-5 stars)", 11), starBox,
-                feedback, submit);
+                Rating result = ShareS.ratingService.submitRating(rating);
+                if (result != null) {
+                    feedback.setText("Rating submitted!");
+                    feedback.setStyle("-fx-text-fill: green;");
+                    submit.setDisable(true);
+                    starBox.setDisable(true);
+                } else {
+                    feedback.setText("Failed to submit rating.");
+                    feedback.setStyle("-fx-text-fill: #e53935;");
+                }
+            });
+            row = new VBox(8,
+                    itemLabel, dateLabel,
+                    Ui.light("Rating (1-5 stars)", 11), starBox,
+                    feedback, submit);
+        }
         row.setPadding(new Insets(16));
         row.setStyle("-fx-background-color: #f9f9f9; -fx-background-radius: 10;");
         row.setMaxWidth(500);
