@@ -13,6 +13,10 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * ProfileSettingsPage is the UI page for managing user profile settings.
+ * Allows users to update their information and set a persistent location for their account.
+ */
 public class ProfileSettingsPage {
 
     public StackPane build() {

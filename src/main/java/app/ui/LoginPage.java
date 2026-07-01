@@ -10,6 +10,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+/**
+ * LoginPage is the UI page for user login.
+ * It allows users to log in by providing their email and password.
+ */
 public class LoginPage {
 
     public VBox build() {

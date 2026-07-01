@@ -4,6 +4,9 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * Page that shows information about ShareSpace.
+ */
 public class AboutPage {
 
     public StackPane build() {

@@ -7,6 +7,9 @@ import javafx.scene.layout.*;
 
 import java.util.List;
 
+/**
+ * Page that shows all categories in the catalog.
+ */
 public class CatalogPage {
 
     public StackPane build() {

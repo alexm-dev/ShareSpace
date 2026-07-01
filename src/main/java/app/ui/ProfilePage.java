@@ -19,9 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * ProfilePage is the UI page for viewing a users profile.
+ * If a user is viewing another users profile, then the ProfilePage becomes read-only.
+ * It displays user information, listings and ratings.
+ */
 public class ProfilePage {
 
-    /** The user whose profile to show; null means "the logged-in user's own". */
+    /** The user whose profile to show; null means "the logged-in users own". */
     private final User viewedUser;
 
     public ProfilePage() {

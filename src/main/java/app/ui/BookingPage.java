@@ -21,6 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The bookings page.
+ * Shows the active users own bookings (what they booked from other lenders)
+ * and the incoming bookings on their own listings (if they are a lender).
+ */
 public class BookingPage {
 
     private static final String IC_PERSON  = "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z";

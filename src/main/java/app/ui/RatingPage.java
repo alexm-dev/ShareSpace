@@ -25,7 +25,6 @@ import java.util.List;
  * Lenders: see their average reputation score and average rating per asset,
  *          plus all individual ratings they have received.
  */
-
 public class RatingPage {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd.MM.yyyy");

@@ -8,6 +8,9 @@ import javafx.scene.layout.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ShareSpacePage is the main landing page.
+ */
 public class ShareSpacePage {
 
     public StackPane build() {

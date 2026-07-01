@@ -11,6 +11,11 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
+/**
+ * RegistrationPage is the UI page for user registration.
+ * It allows users to create an account by providing relevant information and selecting their role.
+ * Is also tied to the login page for quick switching between registration and login.
+ */
 public class RegistrationPage {
 
     public VBox build() {
