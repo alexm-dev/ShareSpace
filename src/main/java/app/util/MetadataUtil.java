@@ -31,7 +31,6 @@ public final class MetadataUtil {
         try {
             return MAPPER.readValue(json, MAP_TYPE);
         } catch (Exception e) {
-            Logger.warn("could not parse metadata json: " + e.getMessage());
             return new LinkedHashMap<>();
         }
     }
