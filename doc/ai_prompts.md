@@ -5,12 +5,10 @@ Tools used:
 - Github Copilot (https://github.com/copilot)
     - Copilot autocomplete also helped with code completion
 
-------------------------------------------------------------------------------------------------
-Java generics and abstraction
-------------------------------------------------------------------------------------------------
+## Java generics and abstraction
 
 Prompt:
-"
+````
 For Java, how do generic abstract classes work with template methods ?
 Example: BaseDAO<T, ID> means that it translates the Type to an object of the subclasses ?
 Also Polymorphism for the subclasses work the same way as in C++ ?
@@ -23,9 +21,10 @@ AssetDAO extends BaseDao<Asset, Integer>
 protected String tableName() {return "Assets"} ?
 Would then the BaseDAO automatically choose the correct tableName function (like virtual in C++?)
 "
+````
 
-Answer: 
-"
+Answer:
+````
 Yes, exactly right! Java generics + abstract classes work very similarly to C++ templates + virtual functions, with some key differences. Let me break it all down:
 
 ## Generic Abstract Classes
@@ -160,17 +159,19 @@ List<Asset> all = dao.findAll(); // calls AssetDAO.tableName() + AssetDAO.mapRow
 ```
 
 This is the classic **Template Method Pattern** — `BaseDAO` defines the algorithm skeleton (`findAll`), and subclasses fill in the specific steps (`tableName`, `mapRow`). Very common in Java frameworks like Spring Data and Hibernate.
-"
+````
 
 ------------------------------------------------------------------------------------------------
 Jbcrypt hashing
 ------------------------------------------------------------------------------------------------
 
 Prompt:
-"Hello, how to use Jbcrypt for encrypting hashes of a plain password ?"
+````
+Hello, how to use Jbcrypt for encrypting hashes of a plain password ?"
+````
 
 Answer:
-"
+````
 Here's how to use jBCrypt for password hashing in Java:
 
 1. Add the Dependency
@@ -244,17 +245,19 @@ Never store plain-text passwords — always store the hash.
 No need to store the salt separately — it's embedded in the hash string itself.
 Each hash is unique even for the same password, due to the random salt.
 Always use checkpw() for verification, not string equality.
-"
+````
 
 ------------------------------------------------------------------------------------------------
 Metadata JSON deserializing
 ------------------------------------------------------------------------------------------------
 
 Prompt:
-"How to add metadata info to Assets withoutn needing to add multiple fields ? Use json ? Also how is the library used for serialization / deserializing then ?"
+````
+How to add metadata info to Assets withoutn needing to add multiple fields ? Use json ? Also how is the library used for serialization / deserializing then ?
+````
 
 Answer:
-"
+````
 Good pattern — storing metadata as a JSON string in a single column is clean and flexible. Here's how to wire it up properly using Jackson (the standard Java JSON library).
 1. Add Jackson to your project
 Maven:
@@ -362,14 +365,14 @@ javapublic Object getTypedMetadata(Asset asset) {
 
 Key points
 ConcernApproachDB schemaSingle TEXT/VARCHAR column — no migrations when metadata changesType safetyTyped POJOs per category, deserialized on demandUnknown fields@JsonIgnoreProperties(ignoreUnknown = true) handles schema evolutionObjectMapperDeclare it static final — it's thread-safe and expensive to constructDAO layerReads/writes getMetadata()/setMetadata() as plain strings — no changes needed
-"
+````
 
 ------------------------------------------------------------------------------------------------
 SQL Java
 ------------------------------------------------------------------------------------------------
 
 Prompt:
-"
+````
 With Java JDBC and SQL how to make statements and add the queries into methods as well ?
 Exmaple:
 public boolean create(Table table) {
@@ -379,9 +382,10 @@ public boolean create(Table table) {
 What is PreparedStatement from java.sql ?
 and what does RETURN_GENERATED_KEYS do for the actual sql ?
 "
+````
 
 Answer:
-"
+````
 **PreparedStatement** is a precompiled SQL statement. Unlike a regular `Statement`, it uses `?` placeholders instead of concatenating values directly into the string — which prevents SQL injection and is more efficient when running the same query multiple times.
 
 **`RETURN_GENERATED_KEYS`** tells JDBC to give you back the auto-generated primary key (e.g. `AUTO_INCREMENT` id) after an INSERT. Without it, you'd have no way to know what ID the database assigned to the new row.
@@ -498,13 +502,13 @@ Key things to note:
 - `executeQuery()` is for SELECT — returns a `ResultSet`
 - The `try-with-resources` block automatically closes the connection and statement, no need for `finally`
 - `stmt.setXxx(index, value)` — index starts at **1**, not 0
-"
+````
 
 ------------------------------------------------------------------------------------------------
 DateTime calculation
 ------------------------------------------------------------------------------------------------
 Prompt:
-"
+````
 Hey there. How can I calculate the total time difference in the calculateCost function:
 
     public double calculateCost(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
@@ -513,10 +517,10 @@ Hey there. How can I calculate the total time difference in the calculateCost fu
     }
 
 the totalCost is dailyRate times the time for the "contract".
-"
+````
 
 Answer:
-"
+````
 
 It depends on how your `dailyRate` is defined.
 
@@ -569,14 +573,14 @@ return dailyRate * days;
 ```
 
 Which pricing model are you using: **prorated partial days** or **rounded-up full days**?
-"
+````
 
 ------------------------------------------------------------------------------------------------
 Apply Discount logic to BookingService
 ------------------------------------------------------------------------------------------------
 
 Prompt: 
-"
+````
 package app.service;
 
 import app.model.Booking;
@@ -623,10 +627,10 @@ public class BookingService {
 }
 
 ok so there needs to be a servive method that can be set to activae the discount if wanted. The discount then needs to be also customizable via method for the UI ... 
-"
+````
 
 Answer: 
-"
+````
 
 A clean approach is to make the discount configuration part of the service state rather than hard-coding it into `calculateCost()`.
 
@@ -739,7 +743,7 @@ double days = Duration.between(startTime, endTime).toMinutes() / (24.0 * 60);
 ```
 
 because the result is fractional and you're dividing by a `double`.
-"
+````
 
 ----------------------------------------------------------------------------------
 Logger Framework
@@ -747,12 +751,12 @@ Logger Framework
 
 
 Prompt:
-"
+````
 How to implement the slf4j and logback loggerframework into the POM.xml and how to actually set the logger framework up with an own schema ?
-"
+````
 
 Answer:
-"
+````
 Here's the setup:
 
 **1. pom.xml dependencies**
@@ -838,16 +842,15 @@ Put this in `src/main/resources/logback.xml` — Logback finds it automatically 
 - `%logger{36}` abbreviates the package path to keep log lines to a reasonable width.
 
 That's the full loop: dependencies → code calls → `logback.xml` controls format, levels, and destinations without touching code.
-"
+````
 
 
 ------------------------------------------------------------------------------------------------
 SQL seeding
 ------------------------------------------------------------------------------------------------
 
-"
 Prompt:
-
+````
 -- ShareSpace reference data
 -- Still needs to be discussed to what reference data we want.
 -- Admin panel might be used to add reference data if we want as well.
@@ -901,10 +904,10 @@ INSERT INTO roles (name) SELECT 'renter' WHERE NOT EXISTS (SELECT 1 FROM roles W
 
 
 this is the seed.sql that sets the pre determined categories... how can I instert a sub_Categorry into the categories without having to code churn like INSERT INTO --- etc... WHERE ? etc...
-"
+````
 
 Answer:
-"
+````
 Good question — this is a classic case where a `VALUES` table source plus a join cleans up the repetition. Let me verify the exact syntax works in SQLite before I hand it to you.sqlite3 CLI isn't here, but Python ships with SQLite. Let me test through that.Confirmed on SQLite 3.45 — here's the deal.
 
 The pattern you want is to stop writing one `INSERT ... SELECT` per sub-category and instead write a single statement that joins a literal list of `(sub_category, category_name)` pairs against `categories` by name. The cleanest way that actually works in SQLite is a CTE:
@@ -948,7 +951,7 @@ JOIN categories c ON c.name = v.column2;
 Functionally identical, just less self-documenting. I'd keep the CTE version in your `seed.sql` for readability.
 
 One note since this is seed data: `INSERT OR IGNORE` here only skips rows that violate a constraint, so if there's no `UNIQUE` on `sub_categories(name, category_id)` you'll get duplicates on re-run. If idempotent seeding matters to you, add a unique constraint on that pair (or on `name` if sub-category names are globally unique) so the `OR IGNORE` actually has something to ignore against.
-"
+````
 
 
 ------------------------------------------------------------------------------------------------
@@ -956,7 +959,7 @@ Image Cropping
 ------------------------------------------------------------------------------------------------
 
 Prompt:
-"
+````
 How to use javaFX-swing to make a crop box for image cropping ? 
 
 And generally how to use javaFX to create a crop dialog to actually crop a upload image ?
@@ -965,10 +968,10 @@ Using JavaFX.geometry.Rectangle to create a box and then a handle for Mouse crop
 Using a byte vector to pass the raw data and the ratio seems plausible ?
 
 and a render function to also render the image source in the dialog also ?
-"
+````
 
 Answer:
-"
+````
 
 Yes. The typical approach in JavaFX is **not** to crop the image while the user is dragging. Instead:
 
@@ -1252,15 +1255,16 @@ This separation keeps rendering, interaction, and pixel processing independent.
 
 Using a byte array or `ByteBuffer` for the original image data is reasonable if it fits your application's data flow, but the crop operation itself should work against a decoded JavaFX `Image` via its `PixelReader`. The crop rectangle should only represent the selected region visually; the actual pixel extraction should happen once, when the user confirms the crop.
 "
+````
 
 Prompt:
 
-"
+````
 For image uploads... use the raw byte vector data and then store that in the DB to then let javaFX-swing read the data to then render it correct ?
-"
+````
 
 Answer:
-"
+````
 
 Yes, that's a common and sensible design. In fact, it's essentially what your code is already doing.
 
@@ -1420,19 +1424,19 @@ These are uncompressed pixel values.
 Your application stores **encoded image bytes**, which is almost always the right choice. They're much smaller, preserve the original format (or your chosen output format), and JavaFX can decode them directly with `new Image(new ByteArrayInputStream(bytes))`.
 
 So your overall architecture is sound: keep images as encoded `byte[]` in the database, decode them into a JavaFX `Image` when needed, let the user edit/crop them, then encode the result back into a new `byte[]` for storage.
-"
+````
 
 -------------------------------------------------------------------
 JavaFX animations for hovering
 ------------------------------------------------------------------
 
 Prompt:
-"
+````
 How to use JavaFX animations for a small hover pop ?
-"
+````
 
 Answer:
-"
+````
 
 A subtle "hover pop" effect is one of the easiest and nicest animations to add in JavaFX. The most common approach is to animate the node's `scaleX` and `scaleY` properties using a `ScaleTransition`.
 
@@ -1579,4 +1583,262 @@ For a subtle, modern hover effect:
 Avoid scaling much beyond about `1.1` for buttons and small controls, as it can feel exaggerated.
 
 For most UI components, a `ScaleTransition` with `Interpolator.EASE_BOTH`, a duration around **150 ms**, and a target scale of **1.05–1.08** strikes a good balance between responsiveness and polish.
+````
+
+-----------------------------------------------------
+Image Upload and DB storing of images
+-----------------------------------------------------
+
+Prompt:
+````
+Hey there, how to best store images in a SQLite DB ?. We will use these images for image upload of profile pictures and asset listing pictures for users to upload...
+
+This is our DB
+
+-- ShareSpace database schema
+CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT    NOT NULL UNIQUE,
+    email         TEXT    NOT NULL UNIQUE,
+    password_hash TEXT    NOT NULL,
+    created_time  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status        TEXT,
+    first_name    TEXT,
+    last_name     TEXT,
+    location_id   INTEGER REFERENCES locations(id) ON DELETE SET NULL
+);
+CREATE TABLE IF NOT EXISTS roles (
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE CHECK (name IN ('lender', 'renter'))
+);
+CREATE TABLE IF NOT EXISTS locations (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    city           TEXT NOT NULL,
+    postal_code    TEXT NOT NULL,
+    district       TEXT,
+    street_address TEXT NOT NULL,
+    country        TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS categories (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL UNIQUE,
+    description TEXT
+);
+CREATE TABLE IF NOT EXISTS sub_categories (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    category_id INTEGER NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
+    UNIQUE (name, category_id)
+);
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id INTEGER NOT NULL,
+    role_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS assets (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id          INTEGER NOT NULL,
+    sub_category_id   INTEGER NOT NULL,
+    model             TEXT    NOT NULL,
+    description       TEXT,
+    condition         TEXT,
+    asset_location_id INTEGER NOT NULL,
+    daily_rate        REAL    NOT NULL,
+    metadata          TEXT,
+    discount_after_days INTEGER NOT NULL DEFAULT 0,
+    discount_percentage REAL    NOT NULL DEFAULT 0,
+    FOREIGN KEY (owner_id)          REFERENCES users(id)          ON DELETE CASCADE,
+    FOREIGN KEY (sub_category_id)   REFERENCES sub_categories(id) ON DELETE RESTRICT,
+    FOREIGN KEY (asset_location_id) REFERENCES locations(id)      ON DELETE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS bookings (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset_id     INTEGER NOT NULL,
+    renter_id    INTEGER NOT NULL,
+    start_time   TEXT    NOT NULL,
+    end_time     TEXT    NOT NULL,
+    status       TEXT    NOT NULL DEFAULT 'pending'
+                         CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
+    total_cost   REAL    NOT NULL CHECK (total_cost >= 0),
+    created_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK (end_time > start_time),
+    FOREIGN KEY (asset_id)  REFERENCES assets(id) ON DELETE RESTRICT,
+    FOREIGN KEY (renter_id) REFERENCES users(id)  ON DELETE RESTRICT
+);
+-- single-row table, id is always 1
+CREATE TABLE IF NOT EXISTS sessions (
+    id         INTEGER PRIMARY KEY CHECK (id = 1),
+    user_id    INTEGER NOT NULL,
+    created_at TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS ratings (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    booking_id    INTEGER NOT NULL,
+    reviewer_id   INTEGER NOT NULL,
+    rated_user_id INTEGER,
+    rating        INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment       TEXT,
+    created_time  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id)    REFERENCES bookings(id) ON DELETE RESTRICT,
+    FOREIGN KEY (reviewer_id)   REFERENCES users(id)    ON DELETE RESTRICT,
+    FOREIGN KEY (rated_user_id) REFERENCES users(id)    ON DELETE RESTRICT
+);
 "
+````
+
+Answer:
+````
+Good timing to think about this before it grows organically. Short answer: **don't store the image bytes in SQLite as BLOBs — store files on disk and keep the path (plus metadata) in the DB.** For a JavaFX desktop app this is especially clear-cut since you're not serving images over HTTP, you're just reading local files.
+
+## Why not BLOBs
+
+- SQLite handles BLOBs fine technically, but your DB file balloons, backups/copies get slow, and `VACUUM`/queries touching those tables get heavier for no reason.
+- JavaFX's `Image`/`ImageView` wants a `File`/URI or `InputStream` anyway — reading a file path is trivial, whereas reading a BLOB means extra marshalling code every time you want to just preview a picture.
+- Filesystem gives you free stuff: OS-level caching, easy thumbnail generation with a library, and you can inspect/debug images without querying the DB.
+
+The one case BLOBs make sense: if you need images to travel atomically with a single DB file (e.g., you're passing the whole `.db` file P2P as an export/import unit with no separate asset bundle). Given ShareSpace is P2P, it's worth asking yourself whether that's actually your model — if a "listing" needs to be shareable as a single self-contained file to a peer without a separate folder of images tagging along, BLOBs (or an attached DB) might genuinely be the right call. Otherwise, go filesystem.
+
+## Recommended design
+
+Add one `images` table instead of a single `image_path` column on `users`/`assets`, since assets need **multiple** photos and users need exactly one profile picture — a join table handles both cleanly:
+
+```sql
+CREATE TABLE IF NOT EXISTS images (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_type  TEXT    NOT NULL CHECK (entity_type IN ('user', 'asset')),
+    entity_id    INTEGER NOT NULL,
+    file_path    TEXT    NOT NULL,        -- relative path, e.g. 'images/assets/42/a1b2c3.jpg'
+    is_primary   INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0,1)),
+    sort_order   INTEGER NOT NULL DEFAULT 0,
+    width        INTEGER,
+    height       INTEGER,
+    file_size    INTEGER,
+    created_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_images_entity ON images(entity_type, entity_id);
+```
+
+Notes on this:
+- `entity_type` + `entity_id` is a poor-man's polymorphic FK (no real `FOREIGN KEY` possible across two tables — enforce validity in app code, or split into `user_images` / `asset_images` if you want real FK constraints and don't mind the duplication). Given you already like CTEs and clean SQL, I'd lean toward **two separate tables** (`user_images`, `asset_images`) so you keep proper `FOREIGN KEY ... ON DELETE CASCADE` — cleaner than the polymorphic pattern in a small schema like this.
+- `is_primary` lets you pick the "cover photo" for an asset listing without relying on insertion order.
+- Store **relative** paths, not absolute — makes the app portable across machines/dev environments (Fedora/openSUSE/Windows in your case).
+
+Two-table version, since it fits your style better:
+
+```sql
+CREATE TABLE IF NOT EXISTS user_images (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL,
+    file_path    TEXT    NOT NULL,
+    created_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS asset_images (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset_id     INTEGER NOT NULL,
+    file_path    TEXT    NOT NULL,
+    is_primary   INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0,1)),
+    sort_order   INTEGER NOT NULL DEFAULT 0,
+    created_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_primary_per_asset
+    ON asset_images(asset_id) WHERE is_primary = 1;
+```
+
+That last partial unique index enforces "at most one primary image per asset" at the DB level for free — no app-side check needed.
+
+## Filesystem layout
+
+```
+app-data/
+  images/
+    users/{user_id}/{uuid}.jpg
+    assets/{asset_id}/{uuid}.jpg
+```
+
+- Generate a UUID or hash-based filename on upload (don't trust user-supplied filenames — collisions, path traversal, weird characters).
+- On delete: since `ON DELETE CASCADE` removes the DB row automatically, but **won't delete the file** — you'll need app-code cleanup (either delete the file synchronously on row delete, or run an occasional orphan-sweep that diffs the `images` folder against what's referenced in the DB).
+- Consider resizing/re-encoding on upload (e.g., cap at 1600px, convert to JPEG) so you're not storing whatever huge file a phone camera produced — smaller files, consistent aspect handling in your `ImageView` grids.
+
+If you want, I can sketch the JavaFX-side upload flow (file chooser → copy into `images/` → insert row) or the CTE-based query to fetch an asset with all its images and its primary flagged.
+````
+
+---
+
+Prompt:
+````
+Ok but... the thing is... user images shouldnt be saved into a path... rather store it into the DB... ?
+````
+
+Answer:
+````
+That actually makes real sense for your case — I should have weighted it more given ShareSpace is P2P. If a listing or profile needs to be shareable/syncable as a single self-contained unit between peers (no separate folder of images tagging along, no broken paths after transfer), BLOBs are the right call, not a compromise.
+
+## Schema with BLOBs
+
+```sql
+CREATE TABLE IF NOT EXISTS user_images (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL,
+    data         BLOB    NOT NULL,
+    mime_type    TEXT    NOT NULL,
+    file_size    INTEGER NOT NULL,
+    width        INTEGER,
+    height       INTEGER,
+    created_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS asset_images (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset_id     INTEGER NOT NULL,
+    data         BLOB    NOT NULL,
+    mime_type    TEXT    NOT NULL,
+    file_size    INTEGER NOT NULL,
+    width        INTEGER,
+    height       INTEGER,
+    is_primary   INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0,1)),
+    sort_order   INTEGER NOT NULL DEFAULT 0,
+    created_time TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_primary_per_asset
+    ON asset_images(asset_id) WHERE is_primary = 1;
+```
+
+If you want a single profile picture per user (not a gallery), you could instead put a nullable `profile_image BLOB` column directly on `users` — simpler, no join needed for the common "show avatar" query. Given assets need multiple images anyway, keeping both as their own tables is more consistent, but worth deciding based on how often you'll query "just the avatar" vs "user + everything about them."
+
+## Practical things that matter with this approach
+
+**Resize/compress before insert, not after.** Since bytes go straight into the DB file, an unprocessed 8MB phone photo bloats your `.db` immediately. Do this in Java before the INSERT:
+- Cap dimensions (e.g., 1200px longest side for asset photos, 400px for avatars)
+- Re-encode to JPEG at a sane quality (80-85%) using `ImageIO` — also normalizes formats, so you don't have to deal with users uploading HEIC/BMP/whatever
+- Store the resulting `width`/`height`/`file_size` alongside, useful for UI layout without decoding the blob
+
+**Reading into JavaFX:**
+```java
+byte[] bytes = rs.getBytes("data");
+Image image = new Image(new ByteArrayInputStream(bytes));
+imageView.setImage(image);
+```
+
+**Writing (PreparedStatement):**
+```java
+byte[] jpegBytes = ...; // after resize/encode
+stmt.setBytes(1, jpegBytes);
+```
+
+**SQLite-specific tuning worth doing:**
+- Run `PRAGMA page_size = 8192;` (or higher) *before* the DB is created — larger pages handle BLOB storage more efficiently than the 4096 default. Can't be changed after tables exist without a full `VACUUM` rebuild, so set it early.
+- If the DB grows large from images, occasional `VACUUM` keeps file size sane after deletes (SQLite doesn't shrink the file automatically).
+- Don't SELECT `data` columns in list/browse queries — only pull the BLOB when you're actually rendering that specific image. Otherwise a "list all assets" query drags every photo's bytes across even though you're just showing text.
+
+Want me to write the actual DAO methods (insert-with-resize, fetch-primary-image, etc.) for this, or the JavaFX upload dialog that feeds into it?
+````
