@@ -74,7 +74,7 @@ public class ProfilePage {
         identity.setAlignment(Pos.CENTER_LEFT);
 
         HBox titleRow = new HBox(16, identity, Ui.spacer(), Ui.light("FOR RENT", 11));
-        titleRow.setAlignment(Pos.TOP_LEFT);
+        titleRow.setAlignment(Pos.BOTTOM_LEFT);
 
         List<Asset> assets = user != null
                 ? ShareS.assetService.findByOwner(user.getId())

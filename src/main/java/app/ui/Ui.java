@@ -583,7 +583,6 @@ public final class Ui {
     }
 
     // button for drawer menu with default event = open drawer
-    private static boolean isOpen = false;
     private static Button getButton(TranslateTransition tt) {
         // icon for toggle button
         final String MenuIcon = "M4 18h16v-2H4v2zM4 13h16v-2H4v2zM4 8h16V6H4v2z";
@@ -598,7 +597,6 @@ public final class Ui {
                 + " -fx-padding: 6;");
 
         toggle.setOnAction(event -> {
-            isOpen = true;
             tt.setToX(0);
             tt.play();
         });
@@ -625,7 +623,6 @@ public final class Ui {
 
     // event for closing the drawer menu
     private static void closeMenu(TranslateTransition tt) {
-        isOpen = false;
         tt.setToX(MENU_WIDTH);
         tt.play();
     }

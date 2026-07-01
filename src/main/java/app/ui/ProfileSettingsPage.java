@@ -1,5 +1,6 @@
 package app.ui;
 
+import app.model.Asset;
 import app.model.Location;
 import app.model.Role;
 import app.model.User;
@@ -110,7 +111,7 @@ public class ProfileSettingsPage {
         country.setMaxWidth(300);
         Label locationError = Ui.light("", 12);
 
-        //prefill with the user's saved location if they already have one
+        // prefill with the user's saved location if they already have one
         if (currentLocation != null) {
             city.setText(currentLocation.getCity());
             postalCode.setText(currentLocation.getPostalCode());
@@ -119,8 +120,23 @@ public class ProfileSettingsPage {
             country.setText(currentLocation.getCountry());
         }
 
+        // list of all assets a user has listed
+        List<Asset> assets = ShareS.assetService.findByOwner(user.getId());
+        boolean isLocked = false;
+        for (Asset a : assets) {
+            if (ShareS.assetService.hasActiveBookings(a.getId())) {
+                isLocked = true;
+                break; // one active booking is enough so break here
+            }
+        }
 
-        //save button with logic
+        // active booking = no deletion allowed, disable textfield
+        if (isLocked) {
+            delete.setDisable(true);
+            delete.setPromptText("Locked! Has active bookings");
+        }
+
+        // save button with logic
         Button save = Ui.button(
                 "Save settings",
                 13,
@@ -223,11 +239,11 @@ public class ProfileSettingsPage {
             if (!delete.getText().isBlank()) {
                 String enteredText = delete.getText();
                 if (deleteString.equals(enteredText)) {
-                    Optional<ButtonType> result = deleteAlert.showAndWait(); //show alert and save returned
-                    if (result.isPresent() && result.get() == deleteButton) { //is delete-button pressed in alert check
+                    Optional<ButtonType> result = deleteAlert.showAndWait(); // show alert and save pressed value from alert: delete/cancel
+                    if (result.isPresent() && result.get() == deleteButton) { // was delete-button pressed in alert check
                         ShareS.userService.deleteAccount(user.getId());
                         ShareS.session.logout();
-                        ShareS.showStartPage(); //events when delete button is pressed
+                        ShareS.showStartPage();
                     }
                 }else {
                     deleteError.setText("Input does not match.");
