@@ -1,5 +1,6 @@
 #!/usr/bin/env pwsh
 # Build a self-contained native app for Windows -> dist/ShareSpace/ShareSpace.exe
+
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
