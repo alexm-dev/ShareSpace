@@ -129,8 +129,11 @@ public class ShareS extends Application {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         // Clamp footer to bottom of window
-        scrollPane.viewportBoundsProperty().addListener(
-                (obs, oldB, newB) -> root.setMinHeight(newB.getHeight()));
+        scrollPane.viewportBoundsProperty().addListener((obs, oldB, newB) -> {
+            if (root.getMinHeight() != newB.getHeight()) {
+                root.setMinHeight(newB.getHeight());
+            }
+        });
 
         Scene scene = new Scene(scrollPane);
         primaryStage.setScene(scene);

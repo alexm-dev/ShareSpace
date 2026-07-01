@@ -31,6 +31,9 @@ public final class Ui {
     /** Global font scale */
     static final double FONT_SCALE = 1.2;
 
+    /** Max decode width for full-width banner images */
+    private static final int BANNER_DECODE_WIDTH = 1600;
+
     private static int scaled(int sizePx) {
         return (int) Math.round(sizePx * FONT_SCALE);
     }
@@ -70,7 +73,8 @@ public final class Ui {
     }
 
     static Region image(double aspectRatio, byte[] data) {
-        Image img = (data == null || data.length == 0) ? null : new Image(new ByteArrayInputStream(data));
+        Image img = (data == null || data.length == 0) ? null
+                : new Image(new ByteArrayInputStream(data), BANNER_DECODE_WIDTH, 0, true, true);
         if (img == null || img.isError() || img.getWidth() == 0 || img.getHeight() == 0) {
             return image(aspectRatio);
         }
@@ -78,6 +82,7 @@ public final class Ui {
         AspectPane r = new AspectPane(aspectRatio);
         r.setBackground(new Background(coverBackground(img)));
         roundedClip(r);
+        r.setCache(true);
         return r;
     }
 
@@ -425,8 +430,6 @@ public final class Ui {
     }
 
     static StackPane footer() {
-        Region bg = box(260, "-fx-background-color: #ffd000; -fx-background-radius: 12;");
-
         HBox links = new HBox(
                 label("Share.", 13, "-fx-text-fill: white; -fx-font-weight: bold;"),
                 spacer(),
@@ -436,6 +439,22 @@ public final class Ui {
         content.setAlignment(Pos.BOTTOM_LEFT);
         content.setPadding(new Insets(20));
 
+        byte[] data = resourceBytes("/images/footer.png");
+        Image img = (data == null || data.length == 0) ? null
+                : new Image(new ByteArrayInputStream(data), BANNER_DECODE_WIDTH, 0, true, true);
+        if (img != null && !img.isError() && img.getWidth() > 0 && img.getHeight() > 0) {
+            AspectPane pane = new AspectPane(img.getHeight() / img.getWidth());
+            pane.setBackground(new Background(coverBackground(img)));
+            roundedClip(pane);
+            pane.getChildren().add(content);
+            StackPane.setAlignment(content, Pos.BOTTOM_LEFT);
+
+            pane.setCache(true);
+            return pane;
+        }
+
+        // fallback: fixed-height solid yellow band with the same overlay
+        Region bg = box(260, "-fx-background-color: #ffd000; -fx-background-radius: 12;");
         StackPane sp = new StackPane(bg, content);
         StackPane.setAlignment(content, Pos.BOTTOM_LEFT);
         return sp;

@@ -3,14 +3,10 @@ package app.ui;
 import app.model.Category;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static app.ui.Ui.button;
 
 public class ShareSpacePage {
 
