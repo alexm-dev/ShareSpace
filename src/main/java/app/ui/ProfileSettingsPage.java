@@ -218,6 +218,8 @@ public class ProfileSettingsPage {
                 }
             }
 
+            ShareS.session.refreshActiveUser();
+
             if (!delete.getText().isBlank()) {
                 String enteredText = delete.getText();
                 if (deleteString.equals(enteredText)) {
