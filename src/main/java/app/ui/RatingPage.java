@@ -9,7 +9,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -160,18 +159,15 @@ public class RatingPage {
         g.setMaxWidth(Double.MAX_VALUE);
 
         g.add(Ui.light("STARS", 11), 0, 0);
-        g.add(Ui.light("COMMENT", 11), 1, 0);
-        g.add(Ui.light("FROM", 11), 2, 0);
+        g.add(Ui.light("FROM", 11), 1, 0);
 
         for (int i = 0; i < received.size(); i++) {
             Rating r = received.get(i);
             User reviewer = ShareS.userService.findById(r.getReviewerId());
             String reviewerName = reviewer != null ? "@" + reviewer.getUsername() : "#" + r.getReviewerId();
-            String commentText  = r.getComment() != null ? r.getComment() : "—";
 
             g.add(Ui.label(stars(r.getRatingValue()), 14, "-fx-text-fill: #ffd000;"), 0, i + 1);
-            g.add(Ui.light(commentText, 13), 1, i + 1);
-            g.add(Ui.light(reviewerName, 13), 2, i + 1);
+            g.add(Ui.light(reviewerName, 13), 1, i + 1);
         }
 
         return new VBox(16, title, g);
@@ -185,22 +181,43 @@ public class RatingPage {
         Label dateLabel = Ui.light(
                 booking.getStartTime().format(DATE_FMT) + " → " + booking.getEndTime().format(DATE_FMT), 12);
 
-        Spinner<Integer> stars = new Spinner<>(1, 5, 5);
-        stars.setEditable(false);
-        stars.setMaxWidth(80);
+        // clickable star rating
+        int[] selectedRating = {0};
+        Label[] starLabels = new Label[5];
+        HBox starBox = new HBox(4);
+
+        for (int s = 0; s < 5; s++) {
+            final int starIndex = s + 1;
+            Label star = Ui.label("★", 28, "-fx-text-fill: #cccccc; -fx-cursor: hand;");
+            starLabels[s] = star;
+            star.setOnMouseClicked(e -> {
+                selectedRating[0] = starIndex;
+                for (int j = 0; j < 5; j++) {
+                    starLabels[j].setStyle(j < starIndex
+                            ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
+                            : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
+                }
+            });
+            starBox.getChildren().add(star);
+        }
 
         Label feedback = Ui.light("", 12);
 
         Button submit = Ui.button("Submit Rating", 13,
                 "-fx-background-color: #ffd000; -fx-text-fill: #333333;");
         submit.setOnAction(e -> {
+            if (selectedRating[0] == 0) {
+                feedback.setText("Please select a star rating.");
+                feedback.setStyle("-fx-text-fill: #e53935;");
+                return;
+            }
             Integer ratedUserId = asset != null ? asset.getOwnerId() : null;
 
             Rating rating = new Rating(
                     booking.getId(),
                     me.getId(),
                     ratedUserId,
-                    stars.getValue(),
+                    selectedRating[0],
                     null);
 
             Rating result = ShareS.ratingService.submitRating(rating);
@@ -208,7 +225,7 @@ public class RatingPage {
                 feedback.setText("Rating submitted!");
                 feedback.setStyle("-fx-text-fill: green;");
                 submit.setDisable(true);
-                stars.setDisable(true);
+                starBox.setDisable(true);
             } else {
                 feedback.setText("Failed to submit rating.");
                 feedback.setStyle("-fx-text-fill: #e53935;");
@@ -217,7 +234,7 @@ public class RatingPage {
 
         VBox row = new VBox(8,
                 itemLabel, dateLabel,
-                Ui.light("Rating (1-5 stars)", 11), stars,
+                Ui.light("Rating (1-5 stars)", 11), starBox,
                 feedback, submit);
         row.setPadding(new Insets(16));
         row.setStyle("-fx-background-color: #f9f9f9; -fx-background-radius: 10;");
