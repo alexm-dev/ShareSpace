@@ -227,7 +227,7 @@ public class RatingPage {
             comment.setText(existingRating.getComment());
         }
 
-        Button submit = Ui.button("Submit Rating", 13,
+        Button submit = Ui.button(existingRating != null ? "Update Rating" : "Submit Rating", 13,
                 "-fx-background-color: #ffd000; -fx-text-fill: #333333;");
         submit.setOnAction(e -> {
             if (selectedRating[0] == 0) {
