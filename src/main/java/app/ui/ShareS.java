@@ -120,7 +120,7 @@ public class ShareS extends Application {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setStyle("-fx-font-size: 15px;");
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
+        scrollPane.setFitToHeight(false);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
