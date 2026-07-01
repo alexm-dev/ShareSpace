@@ -6,6 +6,6 @@ package app.model.enums;
 public enum BookingStatus implements DbValued {
     PENDING,
     CONFIRMED,
-    COMPLETE,
+    COMPLETED,
     CANCELLED
 }

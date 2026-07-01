@@ -242,7 +242,7 @@ public class AssetService {
         boolean hasBooking = bookingDAO.findByRenterId(viewerId).stream()
                 .anyMatch(b -> b.getAssetId() == assetId
                         && (b.getStatus() == BookingStatus.CONFIRMED
-                                || b.getStatus() == BookingStatus.COMPLETE));
+                                || b.getStatus() == BookingStatus.COMPLETED));
 
         return (isOwner || hasBooking) ? location : location.withoutStreet();
     }

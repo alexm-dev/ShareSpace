@@ -104,7 +104,7 @@ public class BookingService {
     public boolean completeBooking(int bookingId) {
         Booking booking = bookingDAO.findById(bookingId);
         if (booking == null) return false;
-        booking.setStatus(BookingStatus.COMPLETE);
+        booking.setStatus(BookingStatus.COMPLETED);
         return bookingDAO.update(booking);
     }
 

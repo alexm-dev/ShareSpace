@@ -131,7 +131,7 @@ public class RatingPage {
         List<Booking> completedBookings = ShareS.bookingService
                 .findByRenter(me.getId())
                 .stream()
-                .filter(b -> b.getStatus() == BookingStatus.COMPLETE)
+                .filter(b -> b.getStatus() == BookingStatus.COMPLETED)
                 .toList();
 
         if (completedBookings.isEmpty()) {
