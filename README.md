@@ -109,8 +109,8 @@ You can then open the index.html inside output directory. Default: `target/repor
 
 To build the submission zip/tar:
 
-Download the action workflow artifact from the the [Java CI Maven](https://github.com/alexm-dev/ShareSpace/actions/workflows/maven.yml) workflow.
-Click on the most recent commit and then download the `ShareSpace-submission`.
+Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
+Click on the most workflow run and then download the `ShareSpace-submission`.
 
 ## License
 
