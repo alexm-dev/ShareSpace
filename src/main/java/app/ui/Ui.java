@@ -32,7 +32,7 @@ public final class Ui {
     static final double FONT_SCALE = 1.2;
 
     /** Max decode width for full-width banner images */
-    private static final int BANNER_DECODE_WIDTH = 1600;
+    private static final int BANNER_DECODE_WIDTH = 1720;
 
     private static int scaled(int sizePx) {
         return (int) Math.round(sizePx * FONT_SCALE);
