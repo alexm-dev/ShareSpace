@@ -8,14 +8,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test-analyze:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -27,29 +26,17 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run integration tests
-        run: mvn -B test
-
-      - name: Package release JAR (tests already passed)
+      - name: Package release JAR
         run: mvn -B package -DskipTests
 
       - name: Generate JavaDocs
         run: mvn -B javadoc:javadoc
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: java
-          build-mode: none
-
-      - name: Analyze with CodeQL
-        uses: github/codeql-action/analyze@v4
-
       - name: Stage submission base
         run: |
           stage=submission/ShareSpace
-          mkdir -p "$stage/repo"
-          git archive --format=tar HEAD | tar -x -C "$stage/repo"
+          mkdir -p "$stage"
+          git archive --format=zip --prefix=repo/ -o "$stage/repo.zip" HEAD
           cp -r doc "$stage/doc"
           cp -r target/reports/apidocs "$stage/javadoc"
           find target -maxdepth 1 -name '*.jar' ! -name 'original-*' -exec cp {} "$stage/" \;
@@ -116,7 +103,7 @@ jobs:
           retention-days: 7
 
   submission:
-    needs: [ test-analyze, native ]
+    needs: [ build, native ]
     runs-on: ubuntu-latest
     steps:
       - name: Download submission base

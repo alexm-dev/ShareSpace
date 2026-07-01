@@ -24,6 +24,8 @@ The Developers are:
 - [ ] UI
 
 - Rating Page -> Submit rating (1-5 stars). 
+- Linking of various buttons. (About Us, etc.)
+- Post-registration transfering to homepage instead of settings.
 
 - Other: Dark Mode settings etc..
 
@@ -108,12 +110,8 @@ You can then open the index.html inside output directory. Default: `target/repor
 
 To build the submission zip/tar:
 
-Either run the `/scripts/build-submission.sh` or `build-submission.ps1`
-OR
 Download the action workflow artifact from the the [Java CI Maven](https://github.com/alexm-dev/ShareSpace/actions/workflows/maven.yml) workflow.
 Click on the most recent commit and then download the `ShareSpace-submission`.
-
-Prefer the script.
 
 ## License
 
