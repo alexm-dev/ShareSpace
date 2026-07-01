@@ -255,12 +255,21 @@ public class BookingPage {
         g.add(Ui.bold("€" + String.format("%.0f", booking.getTotalCost()), 13), 5, row);
 
         boolean canAct = status == BookingStatus.PENDING;
+        boolean canComplete = status == BookingStatus.CONFIRMED;
         int bookingId = booking.getId();
 
         Button acceptBtn = Ui.iconButton(IC_CHECK, "#4caf50", "#ffffff", "Accept booking",
                 canAct ? () -> { ShareS.bookingService.confirmBooking(bookingId); ShareS.showBookingPage(); } : null);
         Button declineBtn = Ui.iconButton(IC_BLOCK, "#e53935", "#ffffff", "Decline booking",
                 canAct ? () -> { ShareS.bookingService.cancelBooking(bookingId); ShareS.showBookingPage(); } : null);
+        Button completeBtn = Ui.button("COMPLETED", 9,
+                "-fx-background-color: #1565c0; -fx-text-fill: white;");
+        completeBtn.setTooltip(new javafx.scene.control.Tooltip("Mark booking as complete"));
+        completeBtn.setDisable(!canComplete);
+        completeBtn.setOnAction(e -> {
+            ShareS.bookingService.completeBooking(bookingId);
+            ShareS.showBookingPage();
+        });
         acceptBtn.setDisable(!canAct);
         declineBtn.setDisable(!canAct);
 
@@ -273,7 +282,7 @@ public class BookingPage {
                 asset != null ? () -> ShareS.showListingDetailPage(asset) : null);
         viewBtn.setDisable(asset == null);
 
-        HBox actions = new HBox(6, profileBtn, invoiceBtn, viewBtn, acceptBtn, declineBtn);
+        HBox actions = new HBox(6, profileBtn, invoiceBtn, viewBtn, acceptBtn, declineBtn, completeBtn);
         actions.setAlignment(Pos.CENTER_RIGHT);
         g.add(actions, 6, row);
     }
