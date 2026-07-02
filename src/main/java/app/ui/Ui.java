@@ -11,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
@@ -20,6 +21,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static app.util.Constants.BANNER_DECODE_WIDTH;
+import static app.util.Constants.FONT_SCALE;
+import static app.util.Constants.FOOTER_HEIGHT;
+import static app.util.Constants.MENU_WIDTH;
+
 /**
  * UI utility class for building JavaFX UI components with consistent styling.
  *
@@ -27,12 +33,6 @@ import java.io.InputStream;
  */
 public final class Ui {
 
-
-    /** Global font scale */
-    static final double FONT_SCALE = 1.2;
-
-    /** Max decode width for full-width banner images */
-    private static final int BANNER_DECODE_WIDTH = 1720;
 
     private static int scaled(int sizePx) {
         return (int) Math.round(sizePx * FONT_SCALE);
@@ -312,19 +312,47 @@ public final class Ui {
         return b;
     }
 
+    /**
+     * Tile showing a name, price and a image area.
+     * Not clickable, not showing an image overlay.
+     */
     static VBox tile(String name, String price, double aspectRatio) {
         return tile(name, price, aspectRatio, null, null);
     }
 
+    /**
+     * Tile showing a name, price and a image area with a click action.
+     * Not showing an image overlay.
+     */
     static VBox tile(String name, String price, double aspectRatio, Runnable onClick) {
         return tile(name, price, aspectRatio, null, onClick);
     }
 
+    /**
+     * Tile showing a name, price and a image area with a click action.
+     * Stores the image data to show in the image area.
+     * Not showing an image overlay.
+     */
     static VBox tile(String name, String price, double aspectRatio, byte[] imageData, Runnable onClick) {
+        return tile(name, price, aspectRatio, imageData, null, onClick);
+    }
+
+    /**
+     * The full tile method, showing a name, price and a image area with a click action and an image overlay with byte data.
+     */
+    static VBox tile(String name, String price, double aspectRatio, byte[] imageData, Node imageOverlay, Runnable onClick) {
         HBox head = new HBox(6, bold(name, 13), light(price, 11));
         head.setAlignment(Pos.BOTTOM_LEFT);
 
-        VBox box = new VBox(6, head, fittedImage(aspectRatio, imageData));
+        Node imageNode = fittedImage(aspectRatio, imageData);
+        if (imageOverlay != null) {
+            StackPane imageStack = new StackPane(imageNode, imageOverlay);
+            StackPane.setAlignment(imageOverlay, Pos.BOTTOM_LEFT);
+            StackPane.setMargin(imageOverlay, new Insets(10));
+            imageNode = imageStack;
+        }
+
+        VBox box = new VBox(6, head, imageNode);
         box.setMaxWidth(Double.MAX_VALUE);
         if (onClick != null) {
             box.setStyle("-fx-cursor: hand;");
@@ -334,7 +362,7 @@ public final class Ui {
         return box;
     }
 
-    private static void addHoverPop(Node node) {
+    static void addHoverPop(Node node) {
         node.setCache(true);
         node.setCacheHint(CacheHint.QUALITY);
 
@@ -384,6 +412,7 @@ public final class Ui {
         if (onOpen != null) {
             box.setStyle("-fx-cursor: hand;");
             box.setOnMouseClicked(e -> onOpen.run());
+            addHoverPop(box);
         }
         return box;
     }
@@ -409,6 +438,7 @@ public final class Ui {
         if (onClick != null) {
             box.setStyle("-fx-cursor: hand;");
             box.setOnMouseClicked(e -> onClick.run());
+            addHoverPop(box);
         }
         return box;
     }
@@ -439,28 +469,31 @@ public final class Ui {
         content.setAlignment(Pos.BOTTOM_LEFT);
         content.setPadding(new Insets(20));
 
+        StackPane band = new StackPane();
+        band.setStyle("-fx-background-color: #ffd000; -fx-background-radius: 12;");
+        band.setMinHeight(FOOTER_HEIGHT);
+        band.setPrefHeight(FOOTER_HEIGHT);
+        band.setMaxHeight(FOOTER_HEIGHT);
+        band.setMaxWidth(Double.MAX_VALUE);
+
         byte[] data = resourceBytes("/images/footer.png");
         Image img = (data == null || data.length == 0) ? null
-                : new Image(new ByteArrayInputStream(data), BANNER_DECODE_WIDTH, 0, true, true);
+                : new Image(new ByteArrayInputStream(data), 1000, 0, true, true);
         if (img != null && !img.isError() && img.getWidth() > 0 && img.getHeight() > 0) {
-            AspectPane pane = new AspectPane(img.getHeight() / img.getWidth());
-            pane.setBackground(new Background(coverBackground(img)));
-            roundedClip(pane);
-            pane.getChildren().add(content);
-            StackPane.setAlignment(content, Pos.BOTTOM_LEFT);
-
-            pane.setCache(true);
-            return pane;
+            ImageView view = new ImageView(img);
+            view.setPreserveRatio(true);
+            view.setSmooth(true);
+            view.setFitHeight(FOOTER_HEIGHT);
+            view.setViewport(new Rectangle2D(0, 0, img.getWidth() - 4, img.getHeight()));
+            band.getChildren().add(view);
+            StackPane.setAlignment(view, Pos.CENTER);
         }
 
-        // fallback: fixed-height solid yellow band with the same overlay
-        Region bg = box(260, "-fx-background-color: #ffd000; -fx-background-radius: 12;");
-        StackPane sp = new StackPane(bg, content);
+        band.getChildren().add(content);
         StackPane.setAlignment(content, Pos.BOTTOM_LEFT);
-        return sp;
+        return band;
     }
 
-    private static final double MENU_WIDTH = 200;
     /**
      * internal method for building a page
      * only accessed in Ui.java
@@ -474,6 +507,7 @@ public final class Ui {
         Label logo = bold("ShareSpace®", 19);
         logo.setStyle("-fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 20;");
         logo.setOnMouseClicked(event -> ShareS.showStartPage());
+        addHoverPop(logo);
 
         // create sliding menuPanel
         VBox menuPanel = new VBox(10);

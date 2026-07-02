@@ -11,8 +11,11 @@ import app.service.RatingService;
 import app.service.SessionService;
 import app.service.UserService;
 import javafx.application.Application;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -121,21 +124,36 @@ public class ShareS extends Application {
 
     // responsible for showing page in UI
     private static void showPage(StackPane root) {
-        ScrollPane scrollPane = new ScrollPane(root);
+        Node scrollContent = root;
+        Node drawer = null;
+        if (root.getChildren().size() >= 2) {
+            scrollContent = root.getChildren().get(0);
+            drawer = root.getChildren().get(1);
+            root.getChildren().clear();
+        }
+
+        final Node contentNode = scrollContent;
+        ScrollPane scrollPane = new ScrollPane(contentNode);
         scrollPane.setStyle("-fx-font-size: 15px;");
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(false);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
+        StackPane sceneRoot = new StackPane(scrollPane);
+        if (drawer != null) {
+            sceneRoot.getChildren().add(drawer);
+            StackPane.setAlignment(drawer, Pos.TOP_RIGHT);
+        }
+
         // Clamp footer to bottom of window
         scrollPane.viewportBoundsProperty().addListener((obs, oldB, newB) -> {
-            if (root.getMinHeight() != newB.getHeight()) {
-                root.setMinHeight(newB.getHeight());
+            if (contentNode instanceof Region region && region.getMinHeight() != newB.getHeight()) {
+                region.setMinHeight(newB.getHeight());
             }
         });
 
-        Scene scene = new Scene(scrollPane);
+        Scene scene = new Scene(sceneRoot);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

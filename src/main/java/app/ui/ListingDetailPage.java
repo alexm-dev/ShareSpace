@@ -67,9 +67,11 @@ public class ListingDetailPage {
         infoCol.setMinWidth(300);
         infoCol.setPrefWidth(340);
 
+        Node ownerCard = Ui.ownerCard(asset.getOwnerId());
+        Ui.addHoverPop(ownerCard);
         VBox picture = new VBox(12,
                 Ui.imageBox(560, 320, ShareS.assetService.getImage(asset.getId())),
-                Ui.ownerCard(asset.getOwnerId()));
+                ownerCard);
         picture.setMaxWidth(560);
 
         HBox top = new HBox(48, infoCol, picture);

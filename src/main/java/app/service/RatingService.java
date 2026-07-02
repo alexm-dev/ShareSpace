@@ -24,7 +24,7 @@ public class RatingService {
      * @return the created rating
      */
     public Rating submitRating(Rating rating) {
-        ratingDAO.create(rating);
+        ratingDAO.upsert(rating);
         return rating;
     }
 

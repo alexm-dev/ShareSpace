@@ -33,13 +33,21 @@ public class ListingsPage {
         }
 
         Node[] tiles = assets.stream()
-                .map(a -> (Node) Ui.tile(
+            .map(a -> {
+                StackPane ownerChip = new StackPane(Ui.ownerCard(a.getOwnerId()));
+                ownerChip.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                ownerChip.setPickOnBounds(false);
+                ownerChip.setStyle("-fx-background-color: rgba(255,255,255,0.9); -fx-background-radius: 999; -fx-padding: 6 12 6 9;");
+                ownerChip.setOnMouseClicked(e -> e.consume());
+                return (Node) Ui.tile(
                         a.getModel().toUpperCase(),
                         "€" + String.format("%.0f", a.getDailyRate()) + "/DAY",
                         0.55,
                         ShareS.assetService.getImage(a.getId()),
-                        () -> ShareS.showListingDetailPage(a)))
-                .toArray(Node[]::new);
+                        ownerChip,
+                        () -> ShareS.showListingDetailPage(a));
+            })
+        .toArray(Node[]::new);
         GridPane grid = Ui.grid(3, 16, tiles);
 
         return Ui.buildPage(title, grid);

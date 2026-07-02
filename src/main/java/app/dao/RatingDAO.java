@@ -74,11 +74,7 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, rating.getBookingId());
             stmt.setInt(2, rating.getReviewerId());
-            if (rating.getRatedUserId() == null) {
-                stmt.setNull(3, Types.INTEGER);
-            } else {
-                stmt.setInt(3, rating.getRatedUserId());
-            }
+            bindNullableRatedUser(stmt, 3, rating.getRatedUserId());
             stmt.setInt(4, rating.getRatingValue());
             stmt.setString(5, rating.getComment());
             boolean success = stmt.executeUpdate() > 0;
@@ -93,11 +89,37 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
         }
     }
 
-    /** Ratings are immutable once submitted -- update is not allowed. */
+    /**
+     * Creates or updates a rating in the database.
+     * If a rating already exists for the given booking_id and reviewer_id, it will be updated instead.
+     * Is to be used instead of {@link #create(Rating)} or {@link #update(Rating)}.
+     *
+     * @param rating The rating to create or update.
+     * @return true if the rating was created or updated successfully, false otherwise.
+     */
+    public boolean upsert(Rating rating) {
+        String update = "UPDATE ratings SET rated_user_id = ?, rating = ?, comment = ?, created_time = CURRENT_TIMESTAMP "
+                + "WHERE booking_id = ? AND reviewer_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(update)) {
+            bindNullableRatedUser(stmt, 1, rating.getRatedUserId());
+            stmt.setInt(2, rating.getRatingValue());
+            stmt.setString(3, rating.getComment());
+            stmt.setInt(4, rating.getBookingId());
+            stmt.setInt(5, rating.getReviewerId());
+            int changed = stmt.executeUpdate();
+            if (changed > 0) {
+                return true;
+            }
+            return create(rating);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to upsert rating", e);
+        }
+    }
+
+    /** Ratings are not updated, use upsert instead. */
     @Override
     public boolean update(Rating rating) {
-        throw new UnsupportedOperationException(
-                "Ratings are immutable once submitted; update is not supported.");
+        throw new UnsupportedOperationException("Use upsert to create or update ratings");
     }
 
     /**
@@ -207,7 +229,7 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
     private List<Rating> findByIntColumn(String column, int value, String errorMessage) {
         List<Rating> list = new ArrayList<>();
         String cols = String.join(", ", COLUMNS);
-        String sql  = "SELECT " + cols + " FROM ratings WHERE " + column + " = ?";
+        String sql  = "SELECT " + cols + " FROM ratings WHERE " + column + " = ? ORDER BY created_time DESC, id DESC";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, value);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -217,5 +239,13 @@ public class RatingDAO extends BaseDAO<Rating, Integer> {
             throw new RuntimeException(errorMessage, e);
         }
         return list;
+    }
+
+    private void bindNullableRatedUser(PreparedStatement stmt, int index, Integer ratedUserId) throws SQLException {
+        if (ratedUserId == null) {
+            stmt.setNull(index, Types.INTEGER);
+        } else {
+            stmt.setInt(index, ratedUserId);
+        }
     }
 }

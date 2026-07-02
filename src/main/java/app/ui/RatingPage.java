@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -164,12 +165,13 @@ public class RatingPage {
         for (int i = 0; i < received.size(); i++) {
             Rating r = received.get(i);
             User reviewer = ShareS.userService.findById(r.getReviewerId());
-            String reviewerName = reviewer != null ? "@" + reviewer.getUsername() : "#" + r.getReviewerId();
             String commentText = r.getComment() != null ? r.getComment() : "—";
 
             g.add(Ui.label(stars(r.getRatingValue()), 14, "-fx-text-fill: #ffd000;"), 0, i + 1);
             g.add(Ui.light(commentText, 13), 1, i + 1);
-            g.add(Ui.light(reviewerName, 13), 2, i + 1);
+            g.add(reviewer != null
+                    ? Ui.ownerCard(reviewer.getId())
+                    : Ui.light("#" + r.getReviewerId(), 13), 2, i + 1);
         }
 
         return new VBox(16, title, g);
@@ -178,6 +180,7 @@ public class RatingPage {
     private VBox buildRatingRow(Booking booking, User me) {
         Asset asset = ShareS.assetService.findById(booking.getAssetId());
         String itemName = asset != null ? asset.getModel().toUpperCase() : "#" + booking.getAssetId();
+        Integer ratedUserId = asset != null ? asset.getOwnerId() : null;
 
         Label itemLabel = Ui.bold(itemName, 15);
         Label dateLabel = Ui.light(
@@ -187,54 +190,98 @@ public class RatingPage {
                 .stream()
                 .filter(r -> r.getReviewerId() == me.getId())
                 .toList();
-        Rating existingRating = bookingRatings.isEmpty() ? null : bookingRatings.get(bookingRatings.size() - 1);
-
-        int initialRating = existingRating != null ? existingRating.getRatingValue() : 0;
-
-        // clickable star rating
-        int[] selectedRating = {initialRating};
+        Rating existingRating = bookingRatings.stream()
+                .max(Comparator.comparing(Rating::getCreatedTime).thenComparingInt(Rating::getId))
+                .orElse(null);
+        int[] currentRating = {existingRating != null ? existingRating.getRatingValue() : 0};
+        String[] currentComment = {existingRating != null ? existingRating.getComment() : null};
+        boolean[] hasRating = {existingRating != null};
+        int[] selectedRating = {currentRating[0]};
         Label[] starLabels = new Label[5];
         HBox starBox = new HBox(4);
 
+        Runnable refreshStars = () -> {
+            for (int j = 0; j < 5; j++) {
+                starLabels[j].setStyle(j < selectedRating[0]
+                        ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
+                        : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
+            }
+        };
+
         for (int s = 0; s < 5; s++) {
             final int starIndex = s + 1;
-            Label star = Ui.label("★", 28, s < initialRating
+            Label star = Ui.label("★", 28, s < currentRating[0]
                     ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
                     : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
             starLabels[s] = star;
             star.setOnMouseClicked(e -> {
                 selectedRating[0] = starIndex;
-                for (int j = 0; j < 5; j++) {
-                    starLabels[j].setStyle(j < starIndex
-                            ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
-                            : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
-                }
+                refreshStars.run();
             });
             starBox.getChildren().add(star);
         }
 
         Label feedback = Ui.light("", 12);
-
-        VBox row;
-        // not yet rated — show comment field + submit button
         javafx.scene.control.TextArea comment = new javafx.scene.control.TextArea();
         comment.setPromptText("Leave a comment (optional)");
         comment.setPrefRowCount(2);
+        comment.setMinWidth(400);
+        comment.setPrefWidth(400);
         comment.setMaxWidth(400);
         comment.setWrapText(true);
-        if (existingRating != null && existingRating.getComment() != null) {
-            comment.setText(existingRating.getComment());
+        if (currentComment[0] != null) {
+            comment.setText(currentComment[0]);
         }
 
-        Button submit = Ui.button(existingRating != null ? "Update Rating" : "Submit Rating", 13,
+        VBox row = new VBox(8);
+        row.setPadding(new Insets(16));
+        row.setStyle("-fx-background-color: #f9f9f9; -fx-background-radius: 10;");
+        row.setMinWidth(500);
+        row.setPrefWidth(500);
+        row.setMaxWidth(500);
+
+        Button edit = Ui.button("Edit Rating", 13,
+                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+        Button submit = Ui.button("Submit Rating", 13,
                 "-fx-background-color: #ffd000; -fx-text-fill: #333333;");
+
+        Runnable[] showEditor = new Runnable[1];
+        Runnable[] showSummary = new Runnable[1];
+
+        showEditor[0] = () -> {
+            selectedRating[0] = currentRating[0];
+            comment.setText(currentComment[0] != null ? currentComment[0] : "");
+            refreshStars.run();
+            submit.setText(hasRating[0] ? "Save Changes" : "Submit Rating");
+            row.getChildren().setAll(
+                    itemLabel, dateLabel,
+                    Ui.light("Rating (1-5 stars)", 11), starBox,
+                    Ui.light("Comment (optional)", 11), comment,
+                    feedback, submit);
+        };
+
+        showSummary[0] = () -> {
+            String shownComment = currentComment[0] != null && !currentComment[0].isBlank() ? currentComment[0] : "—";
+            row.getChildren().setAll(
+                    itemLabel, dateLabel,
+                    Ui.light("Your rating", 11),
+                    Ui.label(stars(currentRating[0]), 18, "-fx-text-fill: #ffd000;"),
+                    Ui.light(shownComment, 13),
+                    edit,
+                    feedback);
+        };
+
+        edit.setOnAction(e -> {
+            feedback.setText("");
+            showEditor[0].run();
+        });
+
         submit.setOnAction(e -> {
             if (selectedRating[0] == 0) {
                 feedback.setText("Please select a star rating.");
                 feedback.setStyle("-fx-text-fill: #e53935;");
                 return;
             }
-            Integer ratedUserId = asset != null ? asset.getOwnerId() : null;
             String commentText = comment.getText().isBlank() ? null : comment.getText().trim();
 
             Rating rating = new Rating(
@@ -243,27 +290,25 @@ public class RatingPage {
                     ratedUserId,
                     selectedRating[0],
                     commentText);
-
             Rating result = ShareS.ratingService.submitRating(rating);
             if (result != null) {
-                feedback.setText("Rating submitted!");
+                currentRating[0] = selectedRating[0];
+                currentComment[0] = commentText;
+                hasRating[0] = true;
+                feedback.setText("Rating saved.");
                 feedback.setStyle("-fx-text-fill: green;");
-                submit.setDisable(true);
-                starBox.setDisable(true);
-                comment.setDisable(true);
+                showSummary[0].run();
             } else {
                 feedback.setText("Failed to submit rating.");
                 feedback.setStyle("-fx-text-fill: #e53935;");
             }
         });
-        row = new VBox(8,
-                itemLabel, dateLabel,
-                Ui.light("Rating (1-5 stars)", 11), starBox,
-                Ui.light("Comment (optional)", 11), comment,
-                feedback, submit);
-        row.setPadding(new Insets(16));
-        row.setStyle("-fx-background-color: #f9f9f9; -fx-background-radius: 10;");
-        row.setMaxWidth(500);
+
+        if (hasRating[0]) {
+            showSummary[0].run();
+        } else {
+            showEditor[0].run();
+        }
         return row;
     }
 
