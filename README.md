@@ -19,15 +19,32 @@ The Developers are:
 - Nadhir Hamdi
 - Theo Deichmann
 
-## TODOs
+## Submission
 
-- [ ] UI
+The submission zip includes the fat shaded jar as well as the binaries for Windows and Linux.
+Included inside `/app/windows/` or `/app/linux`
 
-- Rating Page -> Submit rating (1-5 stars). 
-- Linking of various buttons. (About Us, etc.)
-- Post-registration transfering to homepage instead of settings.
+The submission also includes the entire repo, the javadocs, and the ShareSpace.
 
-- Other: Dark Mode settings etc..
+To build the submission zip/tar:
+
+Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
+Click on the most workflow run and then download the `ShareSpace-submission`.
+
+## Tech Stack
+
+| Layer      | Technology                             |
+|------------|----------------------------------------|
+| Language   | Java 25                                |
+| Build      | Maven (shade, javadoc, exec plugins)   |
+| Database   | SQLite via JDBC                        |
+| Encryption | BCrypt (jbcrypt)                       |
+| JSON       | Jackson (asset metadata serialization) |
+| Packaging  | JPackage (Packaging script)            |
+| UI         | JavaFX (with Swing as an UI extension) |
+| CI/CD      | GitHub Actions                         |
+
+**Architecture:** DB Models -> DAOs -> Services -> JavaFX UI
 
 ## Development and configuration:
 
@@ -59,36 +76,18 @@ If you prefer the terminal:
 - Usage:
 
 ```sh
-# Compile with maven
-mvn compile
+# Compile with maven and build the jar
+mvn compile package
 
 # Run with maven
 mvn exec:java
 
-# Test with maven
-mvn test
-
 # Package with maven
-mvn clean package -Dskiptest -q
+mvn clean package
 
 # Run the JAR
-java -jar /target/ShareSpace-X.Y.Z.jar
+java -jar /target/ShareSpace-0.1.0.jar
 ```
-
-## Tech Stack
-
-| Layer      | Technology                             |
-|------------|----------------------------------------|
-| Language   | Java 25                                |
-| Build      | Maven (shade, javadoc, exec plugins)   |
-| Database   | SQLite via JDBC                        |
-| Encryption | BCrypt (jbcrypt)                       |
-| JSON       | Jackson (asset metadata serialization) |
-| Packaging  | JPackage (Packaging script)            |
-| UI         | JavaFX (with Swing as an UI extension) |
-| CI/CD      | GitHub Actions                         |
-
-**Architecture:** DB Models -> DAOs -> Services -> JavaFX UI
 
 ## JavaDoc
 
@@ -104,13 +103,6 @@ mvn javadoc:javdoc
 - Eclipse: right-click project -> Run As -> Maven build... -> set Goals to `javadoc:javadoc` -> Run
 
 You can then open the index.html inside output directory. Default: `target/reports/apidocs/index.html`
-
-## Submission
-
-To build the submission zip/tar:
-
-Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
-Click on the most workflow run and then download the `ShareSpace-submission`.
 
 ## License
 
