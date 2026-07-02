@@ -21,14 +21,14 @@ The Developers are:
 
 ## Submission
 
-The submission zip includes the fat shaded jar as well as the binaries for Windows and Linux.
+The submission zip includes the fat shaded jar as well as the binaries for Windows and Linux.  
 Included inside `/app/windows/` or `/app/linux`
 
 The submission also includes the entire repo, the javadocs, and the ShareSpace.
 
 To build the submission zip/tar:
 
-Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
+Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.  
 Click on the most workflow run and then download the `ShareSpace-submission`.
 
 ## Tech Stack
