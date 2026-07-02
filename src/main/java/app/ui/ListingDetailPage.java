@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Location;
@@ -123,7 +124,7 @@ public class ListingDetailPage {
     }
 
     private Button primaryButton(String text) {
-        Button b = Ui.button(text, 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+        Button b = Ui.button(text, 13, "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         b.setMaxWidth(300);
         return b;
     }

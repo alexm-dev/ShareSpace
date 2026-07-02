@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.StackPane;
@@ -30,11 +31,12 @@ public class AboutPage {
         VBox team = new VBox(12,
                 Ui.light("THE TEAM", 11),
                 Ui.boldCentered("Make sharing as easy as buying.", 28),
-                Ui.button("BROWSE THE CATALOG", 13, "-fx-background-color: #ffd000;"));
+                Ui.button("BROWSE THE CATALOG", 13, "-fx-background-color: " + Palette.BRAND_YELLOW + ";"));
         team.setAlignment(Pos.CENTER);
         for (var n : team.getChildren()) {
             if (n instanceof javafx.scene.control.Button b) {
                 b.setOnAction(e -> ShareS.showCatalogPage());
+                Ui.addHoverPop(b);
             }
         }
 

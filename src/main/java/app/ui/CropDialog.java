@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -73,11 +74,11 @@ public final class CropDialog {
         }
         Rectangle sel = new Rectangle((dispW - selW) / 2, (dispH - selH) / 2, selW, selH);
         sel.setFill(Color.color(1, 1, 1, 0.15));
-        sel.setStroke(Color.web("#ffd000"));
+        sel.setStroke(Color.web(Palette.BRAND_YELLOW));
         sel.setStrokeWidth(2);
         sel.setCursor(Cursor.MOVE);
 
-        Rectangle handle = new Rectangle(14, 14, Color.web("#ffd000"));
+        Rectangle handle = new Rectangle(14, 14, Color.web(Palette.BRAND_YELLOW));
         handle.setCursor(Cursor.SE_RESIZE);
         Runnable placeHandle = () -> {
             handle.setX(sel.getX() + sel.getWidth() - 7);
@@ -112,7 +113,7 @@ public final class CropDialog {
         byte[][] result = {null};
         Stage dialog = new Stage();
 
-        Button use = Ui.button("Use crop", 13, "-fx-background-color: #ffd000;");
+        Button use = Ui.button("Use crop", 13, "-fx-background-color: " + Palette.BRAND_YELLOW + ";");
         use.setOnAction(e -> {
             result[0] = render(src, scale, sel, data);
             dialog.close();

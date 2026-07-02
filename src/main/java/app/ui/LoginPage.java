@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -31,10 +32,10 @@ public class LoginPage {
         pw.setPromptText("Password");
 
         Label error = Ui.light("", 12);
-        error.setStyle("-fx-text-fill: #e53935;");
+        error.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
 
         Button loginBtn = Ui.button("Log in", 13,
-                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+                "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         loginBtn.setMaxWidth(Double.MAX_VALUE);
         loginBtn.setOnAction(e -> {
             if (ShareS.session.login(email.getText().trim(), pw.getText().toCharArray()) != null) {

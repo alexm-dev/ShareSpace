@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Booking;
@@ -132,7 +133,7 @@ public class BookingFlowPage {
         }
 
         Button confirm = Ui.button("Confirm booking", 13,
-                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+                "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         confirm.setMaxWidth(300);
         confirm.setOnAction(e -> {
             LocalDate s = start.getValue();
@@ -217,6 +218,6 @@ public class BookingFlowPage {
 
     private void showError(Label error, String message) {
         error.setText(message);
-        error.setStyle("-fx-text-fill: #e53935;");
+        error.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
     }
 }

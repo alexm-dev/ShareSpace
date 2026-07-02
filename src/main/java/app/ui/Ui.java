@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Location;
@@ -204,7 +205,7 @@ public final class Ui {
 
         VBox text = new VBox(2,
                 bold("@" + owner.getUsername().toUpperCase(), 13),
-                label(stars(avg), 12, "-fx-text-fill: #ffd000;"));
+                label(stars(avg), 12, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"));
         text.setAlignment(Pos.CENTER_LEFT);
 
         HBox card = new HBox(12, avatar, text);
@@ -470,7 +471,7 @@ public final class Ui {
         content.setPadding(new Insets(20));
 
         StackPane band = new StackPane();
-        band.setStyle("-fx-background-color: #ffd000; -fx-background-radius: 12;");
+        band.setStyle("-fx-background-color: " + Palette.BRAND_YELLOW + "; -fx-background-radius: 12;");
         band.setMinHeight(FOOTER_HEIGHT);
         band.setPrefHeight(FOOTER_HEIGHT);
         band.setMaxHeight(FOOTER_HEIGHT);

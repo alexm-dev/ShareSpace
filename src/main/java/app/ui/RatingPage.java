@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Booking;
@@ -73,7 +74,7 @@ public class RatingPage {
         String countText  = all.size() + (all.size() == 1 ? " rating" : " ratings");
 
         HBox scoreRow = new HBox(12,
-                Ui.label(starsText, 28, "-fx-text-fill: #ffd000;"),
+                Ui.label(starsText, 28, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"),
                 Ui.bold(avgText, 20),
                 Ui.light(countText, 13));
         scoreRow.setAlignment(Pos.CENTER_LEFT);
@@ -115,7 +116,7 @@ public class RatingPage {
             String countText = assetRatings.size() + (assetRatings.size() == 1 ? " rating" : " ratings");
 
             g.add(Ui.bold(a.getModel(), 13), 0, i + 1);
-            g.add(Ui.label(starsText, 14, "-fx-text-fill: #ffd000;"), 1, i + 1);
+            g.add(Ui.label(starsText, 14, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"), 1, i + 1);
             g.add(Ui.light(avgText, 13), 2, i + 1);
             g.add(Ui.light(countText, 13), 3, i + 1);
         }
@@ -167,7 +168,7 @@ public class RatingPage {
             User reviewer = ShareS.userService.findById(r.getReviewerId());
             String commentText = r.getComment() != null ? r.getComment() : "—";
 
-            g.add(Ui.label(stars(r.getRatingValue()), 14, "-fx-text-fill: #ffd000;"), 0, i + 1);
+            g.add(Ui.label(stars(r.getRatingValue()), 14, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"), 0, i + 1);
             g.add(Ui.light(commentText, 13), 1, i + 1);
             g.add(reviewer != null
                     ? Ui.ownerCard(reviewer.getId())
@@ -203,7 +204,7 @@ public class RatingPage {
         Runnable refreshStars = () -> {
             for (int j = 0; j < 5; j++) {
                 starLabels[j].setStyle(j < selectedRating[0]
-                        ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
+                        ? "-fx-text-fill: " + Palette.BRAND_YELLOW + "; -fx-cursor: hand;"
                         : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
             }
         };
@@ -211,7 +212,7 @@ public class RatingPage {
         for (int s = 0; s < 5; s++) {
             final int starIndex = s + 1;
             Label star = Ui.label("★", 28, s < currentRating[0]
-                    ? "-fx-text-fill: #ffd000; -fx-cursor: hand;"
+                    ? "-fx-text-fill: " + Palette.BRAND_YELLOW + "; -fx-cursor: hand;"
                     : "-fx-text-fill: #cccccc; -fx-cursor: hand;");
             starLabels[s] = star;
             star.setOnMouseClicked(e -> {
@@ -241,9 +242,9 @@ public class RatingPage {
         row.setMaxWidth(500);
 
         Button edit = Ui.button("Edit Rating", 13,
-                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+                "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         Button submit = Ui.button("Submit Rating", 13,
-                "-fx-background-color: #ffd000; -fx-text-fill: #333333;");
+                "-fx-background-color: " + Palette.BRAND_YELLOW + "; -fx-text-fill: #333333;");
 
         Runnable[] showEditor = new Runnable[1];
         Runnable[] showSummary = new Runnable[1];
@@ -265,7 +266,7 @@ public class RatingPage {
             row.getChildren().setAll(
                     itemLabel, dateLabel,
                     Ui.light("Your rating", 11),
-                    Ui.label(stars(currentRating[0]), 18, "-fx-text-fill: #ffd000;"),
+                    Ui.label(stars(currentRating[0]), 18, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"),
                     Ui.light(shownComment, 13),
                     edit,
                     feedback);
@@ -279,7 +280,7 @@ public class RatingPage {
         submit.setOnAction(e -> {
             if (selectedRating[0] == 0) {
                 feedback.setText("Please select a star rating.");
-                feedback.setStyle("-fx-text-fill: #e53935;");
+                feedback.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 return;
             }
             String commentText = comment.getText().isBlank() ? null : comment.getText().trim();
@@ -300,7 +301,7 @@ public class RatingPage {
                 showSummary[0].run();
             } else {
                 feedback.setText("Failed to submit rating.");
-                feedback.setStyle("-fx-text-fill: #e53935;");
+                feedback.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
             }
         });
 

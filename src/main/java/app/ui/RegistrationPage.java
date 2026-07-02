@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Role;
 import app.model.User;
@@ -69,12 +70,12 @@ public class RegistrationPage {
         );
 
         Label error = Ui.light("", 12);
-        error.setStyle("-fx-text-fill: #e53935;");
+        error.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
 
         Button registerBtn = Ui.button(
                 "Register",
                 13,
-                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+                "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         registerBtn.setMaxWidth(Double.MAX_VALUE);
         registerBtn.setOnAction(event -> {
             if (username.getText().isBlank()) {

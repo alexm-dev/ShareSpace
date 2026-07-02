@@ -20,4 +20,16 @@ public class Constants {
 
     /** Width of the sliding drawer menu panel. */
     public static final double MENU_WIDTH = 200;
+
+    /** Maximum length of a listing description. */
+    public static final int MAX_DESCRIPTION_CHARS = 1000;
+
+    /** Standard width of a form input field. */
+    public static final double FIELD_WIDTH = 360;
+
+    /** Width of a centered form container. */
+    public static final double FORM_WIDTH = 480;
+
+    /** Aspect ratio (height / width) of listing-card images. */
+    public static final double LISTING_IMAGE_RATIO = 0.55;
 }

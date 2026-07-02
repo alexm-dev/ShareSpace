@@ -1,4 +1,5 @@
 package app.ui;
+import static app.util.Constants.LISTING_IMAGE_RATIO;
 
 import app.model.Asset;
 import app.model.SubCategory;
@@ -42,7 +43,7 @@ public class ListingsPage {
                 return (Node) Ui.tile(
                         a.getModel().toUpperCase(),
                         "€" + String.format("%.0f", a.getDailyRate()) + "/DAY",
-                        0.55,
+                        LISTING_IMAGE_RATIO,
                         ShareS.assetService.getImage(a.getId()),
                         ownerChip,
                         () -> ShareS.showListingDetailPage(a));

@@ -1,9 +1,12 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Location;
 import app.model.Role;
 import app.model.User;
+import static app.util.Constants.FIELD_WIDTH;
+import static app.util.Constants.FORM_WIDTH;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -33,26 +36,26 @@ public class ProfileSettingsPage {
         //username email password management
         TextField username = new TextField();
         username.setPromptText("New username");
-        username.setMaxWidth(300);
+        username.setMaxWidth(FIELD_WIDTH);
         Label usernameError = Ui.light("", 12);
 
         TextField email = new TextField();
         email.setPromptText("New email");
-        email.setMaxWidth(300);
+        email.setMaxWidth(FIELD_WIDTH);
         Label emailError = Ui.light("", 12);
 
         PasswordField pw = new PasswordField();
         pw.setPromptText("New password");
-        pw.setMaxWidth(300);
+        pw.setMaxWidth(FIELD_WIDTH);
         Label pwError = Ui.light("", 12);
 
         //real name (kept private, shown only inside a booking between two users)
         TextField firstName = new TextField();
         firstName.setPromptText("first name");
-        firstName.setMaxWidth(300);
+        firstName.setMaxWidth(FIELD_WIDTH);
         TextField lastName = new TextField();
         lastName.setPromptText("last name");
-        lastName.setMaxWidth(300);
+        lastName.setMaxWidth(FIELD_WIDTH);
         if (user.getFirstName() != null) firstName.setText(user.getFirstName());
         if (user.getLastName() != null) lastName.setText(user.getLastName());
         Label nameError = Ui.light("", 12);
@@ -78,10 +81,10 @@ public class ProfileSettingsPage {
         //delete account field
         TextField delete = new TextField();
         delete.setPromptText("Delete account");
-        delete.setMaxWidth(300);
+        delete.setMaxWidth(FIELD_WIDTH);
         String deleteString = "DELETE";
         Label deleteInfo = Ui.light("To delete your account write 'DELETE'" , 11);
-        deleteInfo.setStyle("-fx-text-fill: #e53935;");
+        deleteInfo.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
         Label deleteError = Ui.light("", 12);
 
         //delete alert
@@ -100,19 +103,19 @@ public class ProfileSettingsPage {
         Location currentLocation = ShareS.userService.getLocation(user.getId());
         TextField city = new TextField();
         city.setPromptText("city");
-        city.setMaxWidth(300);
+        city.setMaxWidth(FIELD_WIDTH);
         TextField postalCode = new TextField();
         postalCode.setPromptText("postalCode");
-        postalCode.setMaxWidth(300);
+        postalCode.setMaxWidth(FIELD_WIDTH);
         TextField district = new TextField();
         district.setPromptText("district");
-        district.setMaxWidth(300);
+        district.setMaxWidth(FIELD_WIDTH);
         TextField streetAddress = new TextField();
         streetAddress.setPromptText("streetAddress");
-        streetAddress.setMaxWidth(300);
+        streetAddress.setMaxWidth(FIELD_WIDTH);
         TextField country = new TextField();
         country.setPromptText("country");
-        country.setMaxWidth(300);
+        country.setMaxWidth(FIELD_WIDTH);
         Label locationError = Ui.light("", 12);
 
         // prefill with the user's saved location if they already have one
@@ -144,8 +147,8 @@ public class ProfileSettingsPage {
         Button save = Ui.button(
                 "Save settings",
                 13,
-                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
-        save.setMaxWidth(300);
+                "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
+        save.setMaxWidth(FIELD_WIDTH);
         save.setOnAction(event -> {
             if (!username.getText().isBlank()) {
                 if (ShareS.userService.updateUsername(user.getId(), username.getText().trim())) {
@@ -153,7 +156,7 @@ public class ProfileSettingsPage {
                     usernameError.setStyle("-fx-text-fill: green;");
                 } else {
                     usernameError.setText("Username already exists.");
-                    usernameError.setStyle("-fx-text-fill: #e53935;");
+                    usernameError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 }
             }
 
@@ -163,7 +166,7 @@ public class ProfileSettingsPage {
                     emailError.setStyle("-fx-text-fill: green;");
                 } else {
                     emailError.setText("Invalid email.");
-                    emailError.setStyle("-fx-text-fill: #e53935;");
+                    emailError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 }
             }
 
@@ -174,7 +177,7 @@ public class ProfileSettingsPage {
                     pw.clear();
                 } else {
                     pwError.setText("Invalid password.");
-                    pwError.setStyle("-fx-text-fill: #e53935;");
+                    pwError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                     pw.clear();
                 }
             }
@@ -202,13 +205,13 @@ public class ProfileSettingsPage {
             if (!firstText.isEmpty() || !lastText.isEmpty()) {
                 if (firstText.isEmpty() || lastText.isEmpty()) {
                     nameError.setText("Please fill in both first and last name.");
-                    nameError.setStyle("-fx-text-fill: #e53935;");
+                    nameError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 } else if (ShareS.userService.updateName(user.getId(), firstText, lastText)) {
                     nameError.setText("Your name has been saved.");
                     nameError.setStyle("-fx-text-fill: green;");
                 } else {
                     nameError.setText("Could not save your name.");
-                    nameError.setStyle("-fx-text-fill: #e53935;");
+                    nameError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 }
             }
 
@@ -222,7 +225,7 @@ public class ProfileSettingsPage {
             if (anyLocation) {
                 if (cityText.isEmpty() || postalText.isEmpty() || streetText.isEmpty() || countryText.isEmpty()) {
                     locationError.setText("City, postal code, street address and country are required.");
-                    locationError.setStyle("-fx-text-fill: #e53935;");
+                    locationError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 } else {
                     Location location = new Location(
                             cityText, postalText,
@@ -233,7 +236,7 @@ public class ProfileSettingsPage {
                         locationError.setStyle("-fx-text-fill: green;");
                     } else {
                         locationError.setText("Could not save your location.");
-                        locationError.setStyle("-fx-text-fill: #e53935;");
+                        locationError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                     }
                 }
             }
@@ -251,7 +254,7 @@ public class ProfileSettingsPage {
                     }
                 }else {
                     deleteError.setText("Input does not match.");
-                    deleteError.setStyle("-fx-text-fill: #e53935;");
+                    deleteError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
                 }
             }
 
@@ -276,8 +279,8 @@ public class ProfileSettingsPage {
                 Ui.light("Delete account", 11), deleteInfo, delete, deleteError,
                 save);
         settings.setStyle("-fx-background-color: white;");
-        settings.setMaxWidth(460);
-        settings.setPrefWidth(460);
+        settings.setMaxWidth(FORM_WIDTH);
+        settings.setPrefWidth(FORM_WIDTH);
 
         HBox settingsWrap = new HBox(settings);
         settingsWrap.setAlignment(Pos.CENTER);

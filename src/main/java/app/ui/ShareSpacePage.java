@@ -1,4 +1,5 @@
 package app.ui;
+import app.util.Palette;
 
 import app.model.Category;
 import javafx.geometry.Pos;
@@ -21,12 +22,13 @@ public class ShareSpacePage {
         VBox who = new VBox(12,
                 Ui.light("WHO WE ARE", 11),
                 Ui.boldCentered("Share the space, smart and light - get your gear just when it's right.", 28),
-                Ui.button("ABOUT US", 13, "-fx-background-color: #ffd000;"));
+                Ui.button("ABOUT US", 13, "-fx-background-color: " + Palette.BRAND_YELLOW + ";"));
         who.setAlignment(Pos.CENTER);
         who.setMaxWidth(Double.MAX_VALUE);
         for (var n : who.getChildren()) {
             if (n instanceof javafx.scene.control.Button b) {
                 b.setOnAction(e -> ShareS.showAboutPage());
+                Ui.addHoverPop(b);
             }
         }
 
@@ -47,11 +49,12 @@ public class ShareSpacePage {
         VBox work = new VBox(12,
                 Ui.light("WORK WITH US", 11),
                 Ui.boldCentered("Work with us to turn unused inventory into revenue while serving your community.", 28),
-                Ui.button("ABOUT US", 13, "-fx-background-color: #ffd000;"));
+                Ui.button("ABOUT US", 13, "-fx-background-color: " + Palette.BRAND_YELLOW + ";"));
         work.setAlignment(Pos.CENTER);
         for (var n : work.getChildren()) {
             if (n instanceof javafx.scene.control.Button b) {
                 b.setOnAction(e -> ShareS.showAboutPage());
+                Ui.addHoverPop(b);
             }
         }
 

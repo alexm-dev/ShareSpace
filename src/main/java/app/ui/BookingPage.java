@@ -1,4 +1,6 @@
 package app.ui;
+import static app.util.Constants.LISTING_IMAGE_RATIO;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Booking;
@@ -73,14 +75,14 @@ public class BookingPage {
     private VBox buildListingsSection(User user) {
         List<Asset> mine = ShareS.assetService.findByOwner(user.getId());
         List<Node> tiles = new ArrayList<>();
-        tiles.add(Ui.addTile("NEW LISTING", 0.55, ShareS::showCreateListingPage));
+        tiles.add(Ui.addTile("NEW LISTING", LISTING_IMAGE_RATIO, ShareS::showCreateListingPage));
         for (Asset a : mine) {
             boolean locked = ShareS.assetService.hasActiveBookings(a.getId());
             tiles.add(Ui.ownerTile(
                     a.getModel().toUpperCase(),
                     "€" + String.format("%.0f", a.getDailyRate()) + "/DAY · "
                             + ShareS.catalogService.getCategoryPath(a.getSubCategoryId()).toUpperCase(),
-                    0.55,
+                    LISTING_IMAGE_RATIO,
                     ShareS.assetService.getImage(a.getId()),
                     locked ? "Locked! Has active bookings" : null,
                     () -> ShareS.showListingDetailPage(a),
@@ -224,12 +226,12 @@ public class BookingPage {
         Button profileBtn = Ui.iconButton(IC_PERSON, "#d9d9d9", "#555555", "Owner profile",
                 owner != null ? () -> ShareS.showUserProfilePage(owner) : null);
         profileBtn.setDisable(owner == null);
-        Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
+        Button invoiceBtn = Ui.iconButton(IC_INVOICE, Palette.BRAND_YELLOW, "#333333", "Save invoice",
                 () -> generateInvoice(booking, asset, ShareS.session.getActiveUser(), owner));
         Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
                 asset != null ? () -> ShareS.showListingDetailPage(asset) : null);
         viewBtn.setDisable(asset == null);
-        Button cancelBtn = Ui.iconButton(IC_BLOCK, "#e53935", "#ffffff", "Cancel booking",
+        Button cancelBtn = Ui.iconButton(IC_BLOCK, Palette.ERROR_RED, "#ffffff", "Cancel booking",
                 active ? () -> { ShareS.bookingService.cancelBooking(bookingId); ShareS.showBookingPage(); } : null);
         cancelBtn.setDisable(!active);
 
@@ -265,7 +267,7 @@ public class BookingPage {
 
         Button acceptBtn = Ui.iconButton(IC_CHECK, "#4caf50", "#ffffff", "Accept booking",
                 canAct ? () -> { ShareS.bookingService.confirmBooking(bookingId); ShareS.showBookingPage(); } : null);
-        Button declineBtn = Ui.iconButton(IC_BLOCK, "#e53935", "#ffffff", "Decline booking",
+        Button declineBtn = Ui.iconButton(IC_BLOCK, Palette.ERROR_RED, "#ffffff", "Decline booking",
                 canAct ? () -> { ShareS.bookingService.cancelBooking(bookingId); ShareS.showBookingPage(); } : null);
         Button completeBtn = Ui.button("COMPLETED", 9,
                 "-fx-background-color: #1565c0; -fx-text-fill: white;");
@@ -281,7 +283,7 @@ public class BookingPage {
         Button profileBtn = Ui.iconButton(IC_PERSON, "#d9d9d9", "#555555", "Renter profile",
                 renter != null ? () -> ShareS.showUserProfilePage(renter) : null);
         profileBtn.setDisable(renter == null);
-        Button invoiceBtn = Ui.iconButton(IC_INVOICE, "#ffd000", "#333333", "Save invoice",
+        Button invoiceBtn = Ui.iconButton(IC_INVOICE, Palette.BRAND_YELLOW, "#333333", "Save invoice",
                 () -> generateInvoice(booking, asset, renter, ShareS.session.getActiveUser()));
         Button viewBtn = Ui.iconButton(IC_EYE, "#ffe680", "#333333", "View listing",
                 asset != null ? () -> ShareS.showListingDetailPage(asset) : null);

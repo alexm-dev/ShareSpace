@@ -1,4 +1,6 @@
 package app.ui;
+import static app.util.Constants.LISTING_IMAGE_RATIO;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Rating;
@@ -55,7 +57,7 @@ public class ProfilePage {
 
         VBox heading = new VBox(4,
                 Ui.bold(displayName, 28),
-                Ui.label(stars(avg), 13, "-fx-text-fill: #ffd000;"));
+                Ui.label(stars(avg), 13, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"));
 
         Region avatar = Ui.avatar(72,
                 user != null ? ShareS.userService.getProfileImage(user.getId()) : null,
@@ -89,7 +91,7 @@ public class ProfilePage {
             : List.of();
         List<Node> tileList = new ArrayList<>();
         if (own) {
-            tileList.add(Ui.addTile("NEW LISTING", 0.55, ShareS::showCreateListingPage));
+            tileList.add(Ui.addTile("NEW LISTING", LISTING_IMAGE_RATIO, ShareS::showCreateListingPage));
         }
         for (Asset a : assets) {
             String caption = "€" + String.format("%.0f", a.getDailyRate()) + "/DAY · "
@@ -97,7 +99,7 @@ public class ProfilePage {
             if (own) {
                 boolean locked = ShareS.assetService.hasActiveBookings(a.getId());
                 tileList.add(Ui.ownerTile(
-                            a.getModel().toUpperCase(), caption, 0.55,
+                            a.getModel().toUpperCase(), caption, LISTING_IMAGE_RATIO,
                             ShareS.assetService.getImage(a.getId()),
                             locked ? "Locked! Has active bookings" : null,
                             () -> ShareS.showListingDetailPage(a),
@@ -106,7 +108,7 @@ public class ProfilePage {
             } else {
                 // read-only tile when viewing someone else's profile
                 tileList.add(Ui.tile(
-                            a.getModel().toUpperCase(), caption, 0.55,
+                            a.getModel().toUpperCase(), caption, LISTING_IMAGE_RATIO,
                             ShareS.assetService.getImage(a.getId()),
                             () -> ShareS.showListingDetailPage(a)));
             }
@@ -146,7 +148,7 @@ public class ProfilePage {
 
         VBox block = new VBox(8,
                 comment,
-                Ui.label(stars(rating.getRatingValue()), 22, "-fx-text-fill: #ffd000;"),
+                Ui.label(stars(rating.getRatingValue()), 22, "-fx-text-fill: " + Palette.BRAND_YELLOW + ";"),
                 Ui.light("FROM", 11),
                 Ui.ownerCard(rating.getReviewerId()));
         block.setAlignment(Pos.CENTER);

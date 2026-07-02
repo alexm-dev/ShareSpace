@@ -1,4 +1,6 @@
 package app.ui;
+import static app.util.Constants.LISTING_IMAGE_RATIO;
+import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Category;
@@ -6,6 +8,9 @@ import app.model.Location;
 import app.model.SubCategory;
 import app.util.MetadataSchema;
 import app.util.MetadataUtil;
+import static app.util.Constants.FIELD_WIDTH;
+import static app.util.Constants.FORM_WIDTH;
+import static app.util.Constants.MAX_DESCRIPTION_CHARS;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -45,7 +50,7 @@ public class CreateListingPage {
 
         int me = ShareS.session.getActiveUser().getId();
         if (!isEdit && !ShareS.userService.hasRole(me, "lender")) {
-            Button settings = Ui.button("Go to settings", 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+            Button settings = Ui.button("Go to settings", 13, "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
             settings.setOnAction(e -> ShareS.showProfileSettingsPage());
             return Ui.buildPage(title,
                     Ui.light("You need the lender role to create listings. Add it in settings.", 13),
@@ -53,7 +58,7 @@ public class CreateListingPage {
         }
 
         if (isEdit && ShareS.assetService.hasActiveBookings(editing.getId())) {
-            Button back = Ui.button("Back to profile", 13, "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
+            Button back = Ui.button("Back to profile", 13, "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
             back.setOnAction(e -> ShareS.showProfilePage());
             return Ui.buildPage(title,
                     Ui.light("This listing has active bookings and can't be edited.", 13),
@@ -63,11 +68,11 @@ public class CreateListingPage {
         ComboBox<Category> categoryBox = new ComboBox<>();
         categoryBox.getItems().addAll(ShareS.catalogService.getAllCategories());
         categoryBox.setConverter(categoryConverter());
-        categoryBox.setMaxWidth(300);
+        categoryBox.setMaxWidth(FIELD_WIDTH);
 
         ComboBox<SubCategory> subBox = new ComboBox<>();
         subBox.setConverter(subConverter());
-        subBox.setMaxWidth(300);
+        subBox.setMaxWidth(FIELD_WIDTH);
 
         VBox metadataRows = new VBox(8);
 
@@ -106,24 +111,36 @@ public class CreateListingPage {
 
         TextField model = new TextField();
         model.setPromptText("model");
-        model.setMaxWidth(300);
-        TextField description = new TextField();
+        model.setMaxWidth(FIELD_WIDTH);
+        TextArea description = new TextArea();
         description.setPromptText("description");
-        description.setMaxWidth(300);
+        description.setWrapText(true);
+        description.setPrefRowCount(5);
+        description.setMaxWidth(FIELD_WIDTH);
+        description.setPrefWidth(FIELD_WIDTH);
+
+        description.setTextFormatter(new TextFormatter<>(change ->
+                change.getControlNewText().length() <= MAX_DESCRIPTION_CHARS ? change : null));
+        Label descCount = Ui.light("0 / " + MAX_DESCRIPTION_CHARS, 11);
+        description.textProperty().addListener((obs, old, text) ->
+                descCount.setText(text.length() + " / " + MAX_DESCRIPTION_CHARS));
+        HBox descCountRow = new HBox(descCount);
+        descCountRow.setMaxWidth(FIELD_WIDTH);
+        descCountRow.setAlignment(Pos.CENTER_RIGHT);
         TextField condition = new TextField();
         condition.setPromptText("condition");
-        condition.setMaxWidth(300);
+        condition.setMaxWidth(FIELD_WIDTH);
         TextField dailyRate = new TextField();
         dailyRate.setPromptText("daily rate");
-        dailyRate.setMaxWidth(300);
+        dailyRate.setMaxWidth(FIELD_WIDTH);
 
         CheckBox discountToggle = new CheckBox("Offer a discount for longer rentals");
         TextField discountDays = new TextField();
         discountDays.setPromptText("after how many days");
-        discountDays.setMaxWidth(300);
+        discountDays.setMaxWidth(FIELD_WIDTH);
         TextField discountPct = new TextField();
         discountPct.setPromptText("percent off (e.g. 20)");
-        discountPct.setMaxWidth(300);
+        discountPct.setMaxWidth(FIELD_WIDTH);
         VBox discountBox = new VBox(10,
                 Ui.light("Discount after (days)", 11), discountDays,
                 Ui.light("Discount (%)", 11), discountPct);
@@ -132,19 +149,33 @@ public class CreateListingPage {
 
         TextField city = new TextField();
         city.setPromptText("city");
-        city.setMaxWidth(300);
+        city.setMaxWidth(FIELD_WIDTH);
         TextField postalCode = new TextField();
         postalCode.setPromptText("postal code");
-        postalCode.setMaxWidth(300);
+        postalCode.setMaxWidth(FIELD_WIDTH);
         TextField district = new TextField();
         district.setPromptText("district (optional)");
-        district.setMaxWidth(300);
+        district.setMaxWidth(FIELD_WIDTH);
         TextField streetAddress = new TextField();
         streetAddress.setPromptText("street address");
-        streetAddress.setMaxWidth(300);
+        streetAddress.setMaxWidth(FIELD_WIDTH);
         TextField country = new TextField();
         country.setPromptText("country");
-        country.setMaxWidth(300);
+        country.setMaxWidth(FIELD_WIDTH);
+
+        var activeUser = ShareS.session.getActiveUser();
+        TextField firstName = new TextField();
+        firstName.setPromptText("first name");
+        firstName.setMaxWidth(FIELD_WIDTH);
+        if (activeUser.getFirstName() != null) firstName.setText(activeUser.getFirstName());
+        TextField lastName = new TextField();
+        lastName.setPromptText("last name");
+        lastName.setMaxWidth(FIELD_WIDTH);
+        if (activeUser.getLastName() != null) lastName.setText(activeUser.getLastName());
+        VBox nameBox = new VBox(10,
+                Ui.light("Your name (shown to renters)", 11),
+                Ui.light("First Name", 11), firstName,
+                Ui.light("Last Name", 11), lastName);
 
         VBox locationBox = new VBox(10,
                 Ui.light("Location", 11),
@@ -161,11 +192,11 @@ public class CreateListingPage {
         final boolean[] imageDirty = { false };
 
         StackPane preview = new StackPane();
-        preview.setMaxWidth(300);
+        preview.setMaxWidth(FIELD_WIDTH);
         preview.setStyle("-fx-cursor: hand;");
         Label addPhoto = Ui.light("Click to add a photo", 12);
         Runnable renderPreview = () -> {
-            preview.getChildren().setAll(Ui.imageBox(300, 165, imageData[0]));
+            preview.getChildren().setAll(Ui.imageBox(FIELD_WIDTH, FIELD_WIDTH * LISTING_IMAGE_RATIO, imageData[0]));
             if (imageData[0] == null) {
                 preview.getChildren().add(addPhoto);
             }
@@ -181,7 +212,7 @@ public class CreateListingPage {
                 return;
             }
             try {
-                byte[] cropped = CropDialog.crop(Files.readAllBytes(file.toPath()), 0.55);
+                byte[] cropped = CropDialog.crop(Files.readAllBytes(file.toPath()), LISTING_IMAGE_RATIO);
                 if (cropped == null) {
                     return;
                 }
@@ -234,8 +265,8 @@ public class CreateListingPage {
         }
 
         Button submit = Ui.button(isEdit ? "Save changes" : "Create listing", 13,
-                "-fx-background-color: #bdbdbd; -fx-text-fill: white;");
-        submit.setMaxWidth(300);
+                "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
+        submit.setMaxWidth(FIELD_WIDTH);
         submit.setOnAction(e -> {
             SubCategory sub = subBox.getValue();
             if (sub == null) {
@@ -316,6 +347,13 @@ public class CreateListingPage {
                 return;
             }
 
+            String firstText = firstName.getText().trim();
+            String lastText = lastName.getText().trim();
+            if (firstText.isEmpty() || lastText.isEmpty()) {
+                showError(error, "First and last name are required.");
+                return;
+            }
+
             Asset asset = new Asset(me, sub.getId(), modelText, descText, conditionText, 0, rate);
             asset.setMetadata(metadata);
             asset.setDiscountAfterDays(discountAfterDays);
@@ -324,6 +362,8 @@ public class CreateListingPage {
                     districtText.isEmpty() ? null : districtText, streetText, countryText);
             Asset created = ShareS.assetService.createAsset(asset, loc);
             if (created != null) {
+                ShareS.userService.updateName(me, firstText, lastText);
+                ShareS.session.refreshActiveUser();
                 if (imageData[0] != null) {
                     ShareS.assetService.saveImage(created.getId(), imageData[0], imageMime[0], me);
                 }
@@ -341,17 +381,18 @@ public class CreateListingPage {
                 Ui.light("Category", 11), categoryBox,
                 Ui.light("Sub-category", 11), subBox,
                 Ui.light("Model", 11), model,
-                Ui.light("Description", 11), description,
+                Ui.light("Description", 11), description, descCountRow,
                 Ui.light("Condition", 11), condition,
                 Ui.light("Daily Rate", 11), dailyRate,
                 discountToggle, discountBox,
                 Ui.light("Details (optional)", 11), metadataRows, addDetail);
         if (!isEdit) {
+            form.getChildren().add(nameBox);
             form.getChildren().add(locationBox);
         }
         form.getChildren().addAll(error, submit);
-        form.setMaxWidth(460);
-        form.setPrefWidth(460);
+        form.setMaxWidth(FORM_WIDTH);
+        form.setPrefWidth(FORM_WIDTH);
 
         HBox formWrap = new HBox(form);
         formWrap.setAlignment(Pos.CENTER);
@@ -403,7 +444,7 @@ public class CreateListingPage {
 
     private void showError(Label error, String message) {
         error.setText(message);
-        error.setStyle("-fx-text-fill: #e53935;");
+        error.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
     }
 
     private Double parseDouble(String text) {
