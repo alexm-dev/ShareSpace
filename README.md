@@ -19,12 +19,17 @@ The Developers are:
 - Nadhir Hamdi
 - Theo Deichmann
 
+## Download
+
+ShareSpace can be download from the [release](https://github.com/alexm-dev/ShareSpace/releases) page.
+It includes the submission that was build via our [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
+
 ## Submission
 
 The submission zip includes the fat shaded jar as well as the binaries for Windows and Linux.  
 Included inside `/app/windows/` or `/app/linux`
 
-The submission also includes the entire repo, the javadocs, and the ShareSpace.
+The submission also includes the entire repo, the javadocs, and the ShareSpace documentaion.
 
 To build the submission zip/tar:
 
