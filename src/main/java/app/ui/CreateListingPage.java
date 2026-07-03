@@ -279,8 +279,8 @@ public class CreateListingPage {
                 return;
             }
             Double rate = parseDouble(dailyRate.getText().trim());
-            if (rate == null) {
-                showError(error, "Daily rate must be a number.");
+            if (rate == null || rate <= 0 || rate > 1_000_000) {
+                showError(error, "Daily rate must be a positive number up to 1,000,000.");
                 return;
             }
 
@@ -449,7 +449,9 @@ public class CreateListingPage {
 
     private Double parseDouble(String text) {
         try {
-            return Double.parseDouble(text);
+            double value = Double.parseDouble(text);
+
+            return Double.isFinite(value) ? value : null;
         } catch (NumberFormatException e) {
             return null;
         }
