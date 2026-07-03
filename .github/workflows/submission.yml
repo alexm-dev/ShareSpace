@@ -13,6 +13,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      project_version: ${{ steps.project_version.outputs.value }}
     steps:
       - uses: actions/checkout@v6
 
@@ -23,11 +25,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Package release JAR
-        run: mvn -B package -DskipTests
-
       - name: Generate JavaDocs
         run: mvn -B javadoc:javadoc
+
+      - name: Resolve project version
+        id: project_version
+        run: |
+          version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
+          if [[ -z "$version" ]]; then echo "Could not resolve project version" >&2; exit 1; fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
 
       - name: Stage submission base
         run: |
@@ -67,10 +73,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build native app-image (jpackage)
+      - name: Build runnable JAR
         shell: bash
         run: |
           mvn -B clean package -DskipTests
+
+      - name: Build native app-image (jpackage)
+        if: matrix.label != 'macos-arm64'
+        shell: bash
+        run: |
           version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
 
           numeric_version=$(echo "$version" | grep -oE '[0-9]+(\.[0-9]+){0,2}' | head -n1)
@@ -104,6 +115,7 @@ jobs:
           retention-days: 7
 
       - name: Upload ${{ matrix.label }} app-image
+        if: matrix.label != 'macos-arm64'
         uses: actions/upload-artifact@v7
         with:
           name: app-image-${{ matrix.label }}
@@ -131,12 +143,6 @@ jobs:
         with:
           name: app-image-windows
           path: submission/ShareSpace/app/windows
-
-      - name: Download macOS app-image
-        uses: actions/download-artifact@v7
-        with:
-          name: app-image-macos-arm64
-          path: submission/ShareSpace/app/macos-arm64
 
       - name: Download Linux runnable JAR
         uses: actions/download-artifact@v7
@@ -177,6 +183,6 @@ jobs:
       - name: Upload submission package
         uses: actions/upload-artifact@v7
         with:
-          name: ShareSpace-submission
+          name: ShareSpace-submission-${{ needs.build.outputs.project_version }}
           path: submission
           include-hidden-files: true

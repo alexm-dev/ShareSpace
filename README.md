@@ -26,8 +26,8 @@ It includes the submission that was build via our [Build Submission](https://git
 
 ## Submission
 
-The submission zip includes the fat shaded jar as well as the binaries for Windows, Linux and macOS-arm64.  
-Included inside `/app/windows/`, `/app/linux/` or `/app/macos-arm64/` of the submission zip
+The submission zip includes the fat shaded jar for each OS as well as the binaries for Windows, Linux.  
+Included inside `/app/windows/`, `/app/linux/`of the submission zip
 
 To run the application with the jar prefer the terminal:
 ```sh
