@@ -43,6 +43,12 @@ java -jar /path/to/ShareSpace-<version>-macos-arm64.jar
 
 The normal executable inludes the full app-image, meaning its fully bundled with the correct configuration and runtime so that its launchable anywhere.
 
+For the Linux binary specifically:
+```sh
+chmod +x ./ShareSpace
+./ShareSpace
+```
+
 The submission also includes the entire repo, the javadocs, and the ShareSpace documentaion.
 
 ## Tech Stack
