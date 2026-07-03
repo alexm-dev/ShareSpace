@@ -2,7 +2,7 @@
 
 ## What is ShareSpace ?
 
-ShareSpace is a user driven marketplace to rent and lend various products and items another person might want to share.
+ShareSpace is a Cross-Platform user driven marketplace to rent and lend various products and items another person might want to share.
 
 It enables an easy interface for you to interact with a user driven platform to rent a selected item
 or to lend an item you wish to share with the public.
@@ -26,22 +26,24 @@ It includes the submission that was build via our [Build Submission](https://git
 
 ## Submission
 
-The submission zip includes the fat shaded jar as well as the binaries for Windows and Linux.  
-Included inside `/app/windows/` or `/app/linux` of the submission zip.
+The submission zip includes the fat shaded jar as well as the binaries for Windows, Linux and macOS-arm64.  
+Included inside `/app/windows/`, `/app/linux/` or `/app/macos-arm64/` of the submission zip
 
 To run the application with the jar prefer the terminal:
 ```sh
-java -jar /path/to/ShareSpace-<version>.jar
+# For Windows
+java -jar /path/to/ShareSpace-<version>-windows.jar
+
+# For Linux
+java -jar /path/to/ShareSpace-<version>-linux.jar
+
+# For macOS
+java -jar /path/to/ShareSpace-<version>-macOS-arm64.jar
 ```
 
 The normal executable inludes the full app-image, meaning its fully bundled with the correct configuration and runtime so that its launchable anywhere.
 
 The submission also includes the entire repo, the javadocs, and the ShareSpace documentaion.
-
-To build the submission zip/tar:
-
-Download the action workflow artifact from the the [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.  
-Click on the most workflow run and then download the `ShareSpace-submission`.
 
 ## Tech Stack
 

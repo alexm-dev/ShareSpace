@@ -72,7 +72,7 @@ jobs:
         run: |
           mvn -B clean package -DskipTests
           version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
-          # jpackage requires a numeric app-version with a first segment >= 1.
+
           numeric_version=$(echo "$version" | grep -oE '[0-9]+(\.[0-9]+){0,2}' | head -n1)
           if [[ -z "$numeric_version" ]]; then
             app_version="1.0.0"
