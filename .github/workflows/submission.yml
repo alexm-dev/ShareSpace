@@ -72,13 +72,27 @@ jobs:
         run: |
           mvn -B clean package -DskipTests
           version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
+          # jpackage requires a numeric app-version with a first segment >= 1.
+          numeric_version=$(echo "$version" | grep -oE '[0-9]+(\.[0-9]+){0,2}' | head -n1)
+          if [[ -z "$numeric_version" ]]; then
+            app_version="1.0.0"
+          else
+            IFS='.' read -r major minor patch <<< "$numeric_version"
+            major=${major:-1}
+            minor=${minor:-0}
+            patch=${patch:-0}
+            if (( major < 1 )); then
+              major=1
+            fi
+            app_version="${major}.${minor}.${patch}"
+          fi
           jar=$(find target -maxdepth 1 -name '*.jar' ! -name 'original-*' | head -n1)
           if [[ -z "$jar" ]]; then echo "No shaded JAR found in target/" >&2; exit 1; fi
           rm -rf jpackage-input dist
           mkdir -p jpackage-input
           cp "$jar" jpackage-input/
           jpackage --type app-image --input jpackage-input --main-jar "$(basename "$jar")" \
-            --main-class app.Main --name ShareSpace --app-version "$version" --dest dist
+            --main-class app.Main --name ShareSpace --app-version "$app_version" --dest dist
 
       - name: Upload ${{ matrix.label }} runnable JAR
         uses: actions/upload-artifact@v7

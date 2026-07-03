@@ -31,7 +31,7 @@ Included inside `/app/windows/` or `/app/linux` of the submission zip.
 
 To run the application with the jar prefer the terminal:
 ```sh
-java -jar /path/to/ShareSpace-0.1.0.jar
+java -jar /path/to/ShareSpace-<version>.jar
 ```
 
 The normal executable inludes the full app-image, meaning its fully bundled with the correct configuration and runtime so that its launchable anywhere.
@@ -98,7 +98,7 @@ mvn exec:java
 mvn clean package
 
 # Run the JAR
-java -jar /target/ShareSpace-0.1.0.jar
+java -jar /target/ShareSpace-<version>.jar
 ```
 
 ## JavaDoc
