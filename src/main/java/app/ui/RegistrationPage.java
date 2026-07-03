@@ -77,6 +77,7 @@ public class RegistrationPage {
                 13,
                 "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         registerBtn.setMaxWidth(Double.MAX_VALUE);
+        registerBtn.setDefaultButton(true);
         registerBtn.setOnAction(event -> {
             if (username.getText().isBlank()) {
                 error.setText("Username can't be blank.");

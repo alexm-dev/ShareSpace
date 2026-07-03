@@ -37,6 +37,7 @@ public class LoginPage {
         Button loginBtn = Ui.button("Log in", 13,
                 "-fx-background-color: " + Palette.BUTTON_GREY + "; -fx-text-fill: white;");
         loginBtn.setMaxWidth(Double.MAX_VALUE);
+        loginBtn.setDefaultButton(true);
         loginBtn.setOnAction(e -> {
             if (ShareS.session.login(email.getText().trim(), pw.getText().toCharArray()) != null) {
                 ShareS.showStartPage();

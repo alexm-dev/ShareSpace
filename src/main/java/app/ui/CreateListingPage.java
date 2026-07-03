@@ -1,16 +1,17 @@
 package app.ui;
-import static app.util.Constants.LISTING_IMAGE_RATIO;
-import app.util.Palette;
 
 import app.model.Asset;
 import app.model.Category;
 import app.model.Location;
 import app.model.SubCategory;
 import app.util.MetadataSchema;
+import app.util.Palette;
 import app.util.MetadataUtil;
+import static app.util.Constants.LISTING_IMAGE_RATIO;
 import static app.util.Constants.FIELD_WIDTH;
 import static app.util.Constants.FORM_WIDTH;
 import static app.util.Constants.MAX_DESCRIPTION_CHARS;
+
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
