@@ -32,13 +32,11 @@ jobs:
       - name: Stage submission base
         run: |
           stage=submission/ShareSpace
-          version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
 
           mkdir -p "$stage"
           git archive --format=zip --prefix=repo/ -o "$stage/repo.zip" HEAD
           cp -r doc "$stage/doc"
           cp -r target/reports/apidocs "$stage/javadoc"
-          cp target/ShareSpace-${version}.jar "$stage/"
 
       - name: Upload submission base
         uses: actions/upload-artifact@v7
@@ -56,6 +54,8 @@ jobs:
             label: linux
           - os: windows-latest
             label: windows
+          - os: macos-14
+            label: macos-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -80,11 +80,20 @@ jobs:
           jpackage --type app-image --input jpackage-input --main-jar "$(basename "$jar")" \
             --main-class app.Main --name ShareSpace --app-version "$version" --dest dist
 
+      - name: Upload ${{ matrix.label }} runnable JAR
+        uses: actions/upload-artifact@v7
+        with:
+          name: runnable-jar-${{ matrix.label }}
+          path: |
+            target/*.jar
+            !target/original-*.jar
+          retention-days: 7
+
       - name: Upload ${{ matrix.label }} app-image
         uses: actions/upload-artifact@v7
         with:
           name: app-image-${{ matrix.label }}
-          path: dist/ShareSpace
+          path: dist/ShareSpace*
           retention-days: 7
 
   submission:
@@ -108,6 +117,43 @@ jobs:
         with:
           name: app-image-windows
           path: submission/ShareSpace/app/windows
+
+      - name: Download macOS app-image
+        uses: actions/download-artifact@v7
+        with:
+          name: app-image-macos-arm64
+          path: submission/ShareSpace/app/macos-arm64
+
+      - name: Download Linux runnable JAR
+        uses: actions/download-artifact@v7
+        with:
+          name: runnable-jar-linux
+          path: submission/ShareSpace/jar/linux
+
+      - name: Download Windows runnable JAR
+        uses: actions/download-artifact@v7
+        with:
+          name: runnable-jar-windows
+          path: submission/ShareSpace/jar/windows
+
+      - name: Download macOS runnable JAR
+        uses: actions/download-artifact@v7
+        with:
+          name: runnable-jar-macos-arm64
+          path: submission/ShareSpace/jar/macos-arm64
+
+      - name: Stage platform-specific runnable JARs
+        run: |
+          for jar in submission/ShareSpace/jar/linux/*.jar; do
+            cp "$jar" "submission/ShareSpace/$(basename "${jar%.jar}")-linux.jar"
+          done
+          for jar in submission/ShareSpace/jar/windows/*.jar; do
+            cp "$jar" "submission/ShareSpace/$(basename "${jar%.jar}")-windows.jar"
+          done
+          for jar in submission/ShareSpace/jar/macos-arm64/*.jar; do
+            cp "$jar" "submission/ShareSpace/$(basename "${jar%.jar}")-macos-arm64.jar"
+          done
+          rm -rf submission/ShareSpace/jar
 
       - name: Unpack source into browsable tree
         run: |
