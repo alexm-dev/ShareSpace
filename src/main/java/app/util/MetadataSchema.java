@@ -5,6 +5,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MetadataSchema is a utility class that provides metadata keys for a select set of categories and sub-categories.
+ * Asset metadata can be also added without being part of this schema,
+ * but this schema is used to add a pre-defined set of metadata keys for a given category and sub-category.
+ */
 public final class MetadataSchema {
 
     private MetadataSchema() {}

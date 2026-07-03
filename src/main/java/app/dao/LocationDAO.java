@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Data Access Object (DAO) for the Location entity.
+ * Data Access Object for the Location entity.
  * This class provides methods to perform CRUD operations on the Location table in the database.
  */
 public class LocationDAO extends BaseDAO<Location, Integer> {
