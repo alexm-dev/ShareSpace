@@ -76,7 +76,7 @@ public class ProfileSettingsPage {
         if (hasRenter && hasLender) {roleBox.setValue("BOTH");
         } else if (hasRenter) {roleBox.setValue("RENTER");
         } else if (hasLender) {roleBox.setValue("LENDER");}
-        Label placeholder = Ui.light("", 12);
+        Label roleUpdated = Ui.light("", 12);
 
         //delete account field
         TextField delete = new TextField();
@@ -99,7 +99,6 @@ public class ProfileSettingsPage {
         deleteAlert.setHeaderText("Warning");
 
         //location field/box
-        // TODO: maybe new sidebar to switch from general to location?
         Location currentLocation = ShareS.userService.getLocation(user.getId());
         TextField city = new TextField();
         city.setPromptText("city");
@@ -188,14 +187,17 @@ public class ProfileSettingsPage {
                     case "RENTER":
                         if (!hasRenter) {ShareS.userService.assignRoleToUser(user.getId(), renterID);}
                         if (hasLender) {ShareS.userService.removeRoleFromUser(user.getId(), lenderId);}
+                        updateRole(roleUpdated);
                         break;
                     case "LENDER":
                         if (hasRenter) {ShareS.userService.removeRoleFromUser(user.getId(), renterID);}
                         if (!hasLender) {ShareS.userService.assignRoleToUser(user.getId(), lenderId);}
+                        updateRole(roleUpdated);
                         break;
                     case "BOTH":
                         if (!hasRenter) {ShareS.userService.assignRoleToUser(user.getId(), renterID);}
                         if (!hasLender) {ShareS.userService.assignRoleToUser(user.getId(), lenderId);}
+                        updateRole(roleUpdated);
                         break;
                 }
             }
@@ -269,7 +271,7 @@ public class ProfileSettingsPage {
                 Ui.light("Password", 11), pw, pwError,
                 Ui.light("First Name", 11), firstName,
                 Ui.light("Last Name", 11), lastName, nameError,
-                Ui.light("Roles", 11), roleBox, placeholder,
+                Ui.light("Roles", 11), roleBox, roleUpdated,
                 Ui.light("Location", 11),
                 Ui.light("City", 11), city,
                 Ui.light("Postal Code", 11), postalCode,
@@ -286,5 +288,11 @@ public class ProfileSettingsPage {
         settingsWrap.setAlignment(Pos.CENTER);
 
         return Ui.buildPage(title, settingsWrap);
+    }
+
+
+    private void updateRole(Label l) {
+        l.setText("Your role has been updated.");
+        l.setStyle("-fx-text-fill: green;");
     }
 }

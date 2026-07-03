@@ -314,7 +314,7 @@ public final class Ui {
     }
 
     /**
-     * Tile showing a name, price and a image area.
+     * Tile showing a name, price and an image area.
      * Not clickable, not showing an image overlay.
      */
     static VBox tile(String name, String price, double aspectRatio) {
@@ -322,7 +322,7 @@ public final class Ui {
     }
 
     /**
-     * Tile showing a name, price and a image area with a click action.
+     * Tile showing a name, price and an image area with a click action.
      * Not showing an image overlay.
      */
     static VBox tile(String name, String price, double aspectRatio, Runnable onClick) {
@@ -330,7 +330,7 @@ public final class Ui {
     }
 
     /**
-     * Tile showing a name, price and a image area with a click action.
+     * Tile showing a name, price and an image area with a click action.
      * Stores the image data to show in the image area.
      * Not showing an image overlay.
      */
@@ -339,7 +339,7 @@ public final class Ui {
     }
 
     /**
-     * The full tile method, showing a name, price and a image area with a click action and an image overlay with byte data.
+     * The full tile method, showing a name, price and an image area with a click action and an image overlay with byte data.
      */
     static VBox tile(String name, String price, double aspectRatio, byte[] imageData, Node imageOverlay, Runnable onClick) {
         HBox head = new HBox(6, bold(name, 13), light(price, 11));
@@ -497,8 +497,8 @@ public final class Ui {
 
     /**
      * internal method for building a page
-     * only accessed in Ui.java
-     * builds a page with header, drawer menu, content, footer
+     * only accessed in Ui.java.
+     * Builds a page with header, drawer menu, content, footer
      *
      * @param children the page content
      * @return the page as a StackPane object
@@ -685,8 +685,8 @@ public final class Ui {
     }
 
     /**
-     * public method for usage in every ...Page class
-     * adds header, drawer and footer
+     * public method for usage in every ...Page class.
+     * Adds header, drawer and footer to given content
      *
      * @param children the page content
      * @return the page as a StackPane object
