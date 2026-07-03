@@ -38,7 +38,7 @@ java -jar /path/to/ShareSpace-<version>-windows.jar
 java -jar /path/to/ShareSpace-<version>-linux.jar
 
 # For macOS
-java -jar /path/to/ShareSpace-<version>-macOS-arm64.jar
+java -jar /path/to/ShareSpace-<version>-macos-arm64.jar
 ```
 
 The normal executable inludes the full app-image, meaning its fully bundled with the correct configuration and runtime so that its launchable anywhere.
