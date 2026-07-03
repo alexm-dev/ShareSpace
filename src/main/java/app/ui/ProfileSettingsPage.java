@@ -248,11 +248,15 @@ public class ProfileSettingsPage {
             if (!delete.getText().isBlank()) {
                 String enteredText = delete.getText();
                 if (deleteString.equals(enteredText)) {
-                    Optional<ButtonType> result = deleteAlert.showAndWait(); // show alert and save pressed value from alert: delete/cancel
-                    if (result.isPresent() && result.get() == deleteButton) { // was delete-button pressed in alert check
-                        ShareS.userService.deleteAccount(user.getId());
-                        ShareS.session.logout();
-                        ShareS.showStartPage();
+                    Optional<ButtonType> result = deleteAlert.showAndWait();
+                    if (result.isPresent() && result.get() == deleteButton) {
+                        if (ShareS.userService.deleteAccount(user.getId())) {
+                            ShareS.session.logout();
+                            ShareS.showStartPage();
+                        } else {
+                            deleteError.setText("Can't delete your account while you have an active booking.");
+                            deleteError.setStyle("-fx-text-fill: " + Palette.ERROR_RED + ";");
+                        }
                     }
                 }else {
                     deleteError.setText("Input does not match.");

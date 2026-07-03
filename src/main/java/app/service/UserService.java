@@ -5,14 +5,22 @@ import app.dao.UserRoleDAO;
 import app.dao.RoleDAO;
 import app.dao.LocationDAO;
 import app.dao.ImageDAO;
+import app.dao.AssetDAO;
+import app.dao.BookingDAO;
+import app.dao.RatingDAO;
 import app.model.User;
 import app.model.UserRole;
 import app.model.Role;
 import app.model.Location;
+import app.model.Asset;
+import app.model.Booking;
+import app.model.Rating;
 import app.model.enums.UserStatus;
+import app.model.enums.BookingStatus;
 import app.util.AuthUtil;
 import static app.util.Constants.MAX_IMAGE_BYTES;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +35,9 @@ public class UserService {
     private final RoleDAO roleDAO;
     private final LocationDAO locationDAO;
     private final ImageDAO userImageDAO;
+    private final AssetDAO assetDAO;
+    private final BookingDAO bookingDAO;
+    private final RatingDAO ratingDAO;
 
     public UserService() {
         this.userDAO = new UserDAO();
@@ -34,6 +45,9 @@ public class UserService {
         this.roleDAO = new RoleDAO();
         this.locationDAO = new LocationDAO();
         this.userImageDAO = new ImageDAO("user_images", "user_id");
+        this.assetDAO = new AssetDAO();
+        this.bookingDAO = new BookingDAO();
+        this.ratingDAO = new RatingDAO();
     }
 
     /**
@@ -293,12 +307,39 @@ public class UserService {
     }
 
     /**
-     * Deletes a user account. Cascades to their assets, bookings and roles via FK.
+     * Deletes a user account together with its history.
      *
      * @param userId the id of the user to delete
-     * @return true if deleted, false if not found
+     * @return true if deleted, false if not found or blocked by an active booking
      */
     public boolean deleteAccount(int userId) {
+        List<Booking> bookings = new ArrayList<>(bookingDAO.findByRenterId(userId));
+        for (Asset asset : assetDAO.findByOwnerId(userId)) {
+            bookings.addAll(bookingDAO.findByAssetId(asset.getId()));
+        }
+
+        boolean hasActiveBooking = bookings.stream().anyMatch(b ->
+                b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.CONFIRMED);
+        if (hasActiveBooking) {
+            return false;
+        }
+
+        // clear dependents in FK-safe order: ratings -> bookings -> user
+        for (Booking booking : bookings) {
+            for (Rating rating : ratingDAO.findByBookingId(booking.getId())) {
+                ratingDAO.delete(rating.getId());
+            }
+            bookingDAO.delete(booking.getId());
+        }
+
+        for (Rating rating : ratingDAO.findByReviewerId(userId)) {
+            ratingDAO.delete(rating.getId());
+        }
+
+        for (Rating rating : ratingDAO.findByRatedUserId(userId)) {
+            ratingDAO.delete(rating.getId());
+        }
+
         return userDAO.delete(userId);
     }
 
