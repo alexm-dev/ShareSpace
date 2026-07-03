@@ -147,6 +147,21 @@ public class BookingFlowPage {
                 return;
             }
 
+            if (en.isEqual(s)) {
+                showError(error, "End date must be after the start date.");
+                return;
+            }
+
+            if (en.isBefore(LocalDate.now())) {
+                showError(error, "Start and end dates must be in the future.");
+                return;
+            }
+
+            if (s.isBefore(LocalDate.now())) {
+                showError(error, "Start and end dates must be in the future.");
+                return;
+            }
+
             if (needsName) {
                 String firstText = firstName.getText().trim();
                 String lastText = lastName.getText().trim();
