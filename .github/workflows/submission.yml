@@ -32,11 +32,13 @@ jobs:
       - name: Stage submission base
         run: |
           stage=submission/ShareSpace
+          version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
+
           mkdir -p "$stage"
           git archive --format=zip --prefix=repo/ -o "$stage/repo.zip" HEAD
           cp -r doc "$stage/doc"
           cp -r target/reports/apidocs "$stage/javadoc"
-          find target -maxdepth 1 -name '*.jar' ! -name 'original-*' -exec cp {} "$stage/" \;
+          cp target/ShareSpace-${version}.jar "$stage/"
 
       - name: Upload submission base
         uses: actions/upload-artifact@v7
