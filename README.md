@@ -21,13 +21,20 @@ The Developers are:
 
 ## Download
 
-ShareSpace can be download from the [release](https://github.com/alexm-dev/ShareSpace/releases) page.
+ShareSpace can be download from the [release](https://github.com/alexm-dev/ShareSpace/releases) page.  
 It includes the submission that was build via our [Build Submission](https://github.com/alexm-dev/ShareSpace/actions/workflows/submission.yml) workflow.
 
 ## Submission
 
 The submission zip includes the fat shaded jar as well as the binaries for Windows and Linux.  
-Included inside `/app/windows/` or `/app/linux`
+Included inside `/app/windows/` or `/app/linux` of the submission zip.
+
+To run the application with the jar prefer the terminal:
+```sh
+java -jar /path/to/ShareSpace-0.1.0.jar
+```
+
+The normal executable inludes the full app-image, meaning its fully bundled with the correct configuration and runtime so that its launchable anywhere.
 
 The submission also includes the entire repo, the javadocs, and the ShareSpace documentaion.
 
