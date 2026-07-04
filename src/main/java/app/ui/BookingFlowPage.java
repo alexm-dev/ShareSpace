@@ -193,6 +193,11 @@ public class BookingFlowPage {
                 }
             }
 
+            if (!ShareS.bookingService.isAvailable(asset.getId(), s.atStartOfDay(), en.atStartOfDay())) {
+                showError(error, "This listing is already booked for those dates. Please pick a different range.");
+                return;
+            }
+
             Booking booking = ShareS.bookingService.createBooking(
                     asset.getId(), me.getId(), s.atStartOfDay(), en.atStartOfDay());
             if (booking != null) {

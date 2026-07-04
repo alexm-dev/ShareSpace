@@ -59,9 +59,12 @@ public class BookingService {
      * @param renterId The ID of the user making the booking.
      * @param startTime The start time of the booking.
      * @param endTime The end time of the booking.
-     * @return The created booking with its ID, or null if creation failed.
+     * @return The created booking with its ID, or null if the dates are already booked or creation failed.
      */
     public Booking createBooking(int assetId, int renterId, LocalDateTime startTime, LocalDateTime endTime) {
+        if (!isAvailable(assetId, startTime, endTime)) {
+            return null;
+        }
         double totalCost = calculateCost(assetId, startTime, endTime);
         Booking booking = new Booking(assetId, renterId, startTime, endTime, BookingStatus.PENDING, totalCost);
         return bookingDAO.create(booking) ? booking : null;
@@ -136,5 +139,19 @@ public class BookingService {
      */
     public List<Asset> getBookingsByOwner(int ownerId) {
         return assetDAO.findByOwnerId(ownerId);
+    }
+
+    /**
+     * Checks if an asset is available for booking in the given time range.
+     *
+     * @param assetId the asset to check
+     * @param startTime the requested start
+     * @param endTime the requested end
+     * @return true if no active booking overlaps the requested range
+     */
+    public boolean isAvailable(int assetId, LocalDateTime startTime, LocalDateTime endTime) {
+        return bookingDAO.findByAssetId(assetId).stream()
+                .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.CONFIRMED)
+                .noneMatch(b -> startTime.isBefore(b.getEndTime()) && b.getStartTime().isBefore(endTime));
     }
 }
